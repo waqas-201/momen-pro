@@ -73,7 +73,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
           {/* 3. Surah Pill Badge */}
           <View style={styles.pillBadge}>
             <Text style={styles.pillStar}>✦</Text>
-            <Text style={styles.pillText}>Surah Ar-Ra'd • 13:28</Text>
+            <Text style={styles.pillText}>{"Surah Ar-Ra'd • 13:28"}</Text>
           </View>
 
           {/* 4. English Italic Serif Translation */}
