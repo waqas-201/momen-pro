@@ -9,7 +9,7 @@ async function runTests() {
   }
 
   console.log('🚀 Launching Playwright Chromium...');
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, channel: 'chrome' });
   const context = await browser.newContext({
     viewport: { width: 440, height: 900 },
   });
