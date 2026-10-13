@@ -44,14 +44,18 @@ async function runTests() {
   let body1 = await page.textContent('body');
   console.log('Screen 1 loaded?', body1.includes('PRAYERS') || body1.includes('prayer'));
 
-  // Screen 1 -> Screen 2: Click Next
+  const clickButton = async (testId, textFallback) => {
+    const btn = page.getByTestId(testId);
+    if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await btn.click();
+    } else {
+      await page.getByText(textFallback).first().click();
+    }
+  };
+
+  // Screen 1 -> Screen 2: Click Continue
   console.log('👉 Navigating to Screen 2...');
-  const nextBtn1 = page.getByTestId('bottom-cta-button');
-  if (await nextBtn1.isVisible()) {
-    await nextBtn1.click();
-  } else {
-    await page.getByText('Next').click();
-  }
+  await clickButton('prayers-continue-btn', 'Continue');
   await page.waitForTimeout(1500);
 
   console.log('📸 Screen 2 (Prayer Space): Capturing and validating...');
@@ -59,9 +63,9 @@ async function runTests() {
   let body2 = await page.textContent('body');
   console.log('Screen 2 loaded?', body2.includes('SPACE') || body2.includes('space') || body2.includes('Mosque'));
 
-  // Screen 2 -> Screen 3: Click Next
+  // Screen 2 -> Screen 3: Click Continue
   console.log('👉 Navigating to Screen 3...');
-  await page.getByTestId('bottom-cta-button').click();
+  await clickButton('prayerspace-continue-btn', 'Continue');
   await page.waitForTimeout(1500);
 
   console.log('📸 Screen 3 (Remembrance): Capturing and validating...');
@@ -69,9 +73,9 @@ async function runTests() {
   let body3 = await page.textContent('body');
   console.log('Screen 3 loaded?', body3.includes('REMEMBRANCE') || body3.includes('remembrance') || body3.includes('azkar'));
 
-  // Screen 3 -> Screen 4: Click Next
+  // Screen 3 -> Screen 4: Click Continue
   console.log('👉 Navigating to Screen 4...');
-  await page.getByTestId('bottom-cta-button').click();
+  await clickButton('remembrance-continue-btn', 'Continue');
   await page.waitForTimeout(1500);
 
   console.log('📸 Screen 4 (Recitation): Capturing and validating...');
@@ -79,9 +83,9 @@ async function runTests() {
   let body4 = await page.textContent('body');
   console.log('Screen 4 loaded?', body4.includes('RECITATION') || body4.includes('recitation') || body4.includes('Ayahs'));
 
-  // Screen 4 -> Screen 5: Click Next
+  // Screen 4 -> Screen 5: Click Continue
   console.log('👉 Navigating to Screen 5...');
-  await page.getByTestId('bottom-cta-button').click();
+  await clickButton('recitation-continue-btn', 'Continue');
   await page.waitForTimeout(1500);
 
   console.log('📸 Screen 5 (Missed Prayers / Fresh Beginning): Capturing and validating...');
@@ -89,9 +93,9 @@ async function runTests() {
   let body5 = await page.textContent('body');
   console.log('Screen 5 loaded?', body5.includes('BEGINNING') || body5.includes('missed') || body5.includes('Qaza'));
 
-  // Screen 5 -> Screen 6: Click Next
+  // Screen 5 -> Screen 6: Click Continue
   console.log('👉 Navigating to Screen 6...');
-  await page.getByTestId('bottom-cta-button').click();
+  await clickButton('missed-prayers-continue-btn', 'Continue');
   await page.waitForTimeout(1500);
 
   console.log('📸 Screen 6 (Daily Intentions): Capturing and validating...');
@@ -99,9 +103,9 @@ async function runTests() {
   let body6 = await page.textContent('body');
   console.log('Screen 6 loaded?', body6.includes('INTENTIONS') || body6.includes('intentions') || body6.includes('Dhikr'));
 
-  // Screen 6 -> Screen 7: Click Next
+  // Screen 6 -> Screen 7: Click Save my goals
   console.log('👉 Navigating to Screen 7...');
-  await page.getByTestId('bottom-cta-button').click();
+  await clickButton('save-goals-btn', 'Save my goals');
   await page.waitForTimeout(1500);
 
   console.log('📸 Screen 7 (Journey Begins): Capturing and validating...');
@@ -111,7 +115,7 @@ async function runTests() {
 
   // Screen 7 -> Finish Journey
   console.log('👉 Clicking "Begin my journey"...');
-  await page.getByTestId('journey-finish-button').click();
+  await clickButton('journey-finish-button', 'Begin my journey');
   await page.waitForTimeout(1000);
 
   console.log('📸 Journey Completed Modal: Capturing...');

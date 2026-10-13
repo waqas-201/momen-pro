@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { ArrowRight } from 'lucide-react-native';
 import { Colors } from '../theme/colors';
+import { FontFamilies } from '../theme/typography';
 
 interface BottomCTAProps {
   title: string;
@@ -66,12 +67,14 @@ const styles = StyleSheet.create({
         }),
   },
   buttonText: {
+    fontFamily: FontFamilies.sansSemiBold,
     color: Colors.textLight,
     fontSize: 15,
     fontWeight: '600',
     letterSpacing: 0.2,
   },
   subtitleText: {
+    fontFamily: FontFamilies.sansRegular,
     fontSize: 10,
     fontWeight: '400',
     color: Colors.textSecondary,

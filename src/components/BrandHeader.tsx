@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import { Colors } from '../theme/colors';
+import { FontFamilies } from '../theme/typography';
 
 interface BrandHeaderProps {
   onBack?: () => void;
@@ -67,6 +68,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   backText: {
+    fontFamily: FontFamilies.sansMedium,
     fontSize: 12,
     fontWeight: '500',
     color: Colors.primary,

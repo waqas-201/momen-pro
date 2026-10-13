@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors } from '../theme/colors';
+import { FontFamilies } from '../theme/typography';
 
 interface StepProgressProps {
   title: string;
@@ -53,12 +54,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   titleText: {
+    fontFamily: FontFamilies.sansSemiBold,
     fontSize: 10,
     fontWeight: '600',
     letterSpacing: 0.5,
     color: Colors.primary,
   },
   stepCountText: {
+    fontFamily: FontFamilies.sansRegular,
     fontSize: 10,
     fontWeight: '400',
     color: Colors.textSecondary,

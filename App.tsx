@@ -1,6 +1,22 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, StatusBar, Platform, Modal, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, StatusBar, Platform, Modal, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import {
+  useFonts,
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+} from '@expo-google-fonts/plus-jakarta-sans';
+import {
+  CormorantGaramond_400Regular_Italic,
+  CormorantGaramond_600SemiBold,
+  CormorantGaramond_700Bold,
+} from '@expo-google-fonts/cormorant-garamond';
+import {
+  Amiri_400Regular,
+  Amiri_700Bold,
+} from '@expo-google-fonts/amiri';
 import { OnboardingProvider } from './src/context/OnboardingContext';
 import { SplashScreen } from './src/screens/SplashScreen';
 import { ScreenPrayers } from './src/screens/ScreenPrayers';
@@ -11,10 +27,37 @@ import { ScreenMissedPrayers } from './src/screens/ScreenMissedPrayers';
 import { ScreenDailyIntentions } from './src/screens/ScreenDailyIntentions';
 import { ScreenJourneyBegins } from './src/screens/ScreenJourneyBegins';
 import { Colors } from './src/theme/colors';
+import { FontFamilies } from './src/theme/typography';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<number>(0);
   const [journeyCompleted, setJourneyCompleted] = useState<boolean>(false);
+
+  const [fontsLoaded] = useFonts({
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+    CormorantGaramond_400Regular_Italic,
+    CormorantGaramond_600SemiBold,
+    CormorantGaramond_700Bold,
+    Amiri_400Regular,
+    Amiri_700Bold,
+  });
+
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const linkId = 'momen-pro-google-fonts';
+      if (!document.getElementById(linkId)) {
+        const link = document.createElement('link');
+        link.id = linkId;
+        link.rel = 'stylesheet';
+        link.href =
+          'https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap';
+        document.head.appendChild(link);
+      }
+    }
+  }, []);
 
   const nextScreen = () => {
     setCurrentScreen((prev) => Math.min(prev + 1, 7));
@@ -113,19 +156,24 @@ const styles = StyleSheet.create({
     backgroundColor: Platform.OS === 'web' ? '#041A16' : Colors.bg,
     alignItems: 'center',
     justifyContent: 'center',
+    ...(Platform.OS === 'web' ? ({ minHeight: '100vh', width: '100vw' } as any) : {}),
   },
   mobileFrame: {
-    flex: 1,
-    width: '100%',
-    maxWidth: Platform.OS === 'web' ? 440 : undefined,
-    height: '100%',
+    width: Platform.OS === 'web' ? 390 : '100%',
+    maxWidth: 390,
+    height: Platform.OS === 'web' ? 884 : '100%',
+    maxHeight: Platform.OS === 'web' ? 884 : undefined,
     backgroundColor: Colors.bg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.35,
-    shadowRadius: 28,
-    elevation: 8,
+    overflow: 'hidden',
     position: 'relative',
+    ...(Platform.OS === 'web'
+      ? ({
+          borderRadius: 36,
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.45), 0 0 40px rgba(200, 168, 107, 0.15)',
+          borderWidth: 1,
+          borderColor: 'rgba(200, 168, 107, 0.3)',
+        } as any)
+      : {}),
   },
   modalOverlay: {
     flex: 1,
@@ -141,22 +189,24 @@ const styles = StyleSheet.create({
     borderColor: Colors.goldLight,
     padding: 28,
     alignItems: 'center',
-    maxWidth: 360,
+    maxWidth: 340,
     width: '100%',
   },
   modalSeal: {
     color: Colors.gold,
     fontSize: 18,
     marginBottom: 10,
+    fontFamily: FontFamilies.amiriRegular,
   },
   modalTitle: {
-    fontFamily: Platform.select({ ios: 'Georgia', default: 'serif' }),
+    fontFamily: FontFamilies.serifSemiBold,
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '600',
     color: Colors.primary,
     marginBottom: 10,
   },
   modalMessage: {
+    fontFamily: FontFamilies.sansRegular,
     fontSize: 13,
     lineHeight: 20,
     color: Colors.textSecondary,
@@ -169,11 +219,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 9999,
     borderWidth: 1,
-    borderColor: Colors.goldLight,
+    borderColor: Colors.goldBorder,
   },
   modalButtonText: {
     color: '#FFFDF9',
     fontSize: 13,
     fontWeight: '600',
+    fontFamily: FontFamilies.sansSemiBold,
   },
 });

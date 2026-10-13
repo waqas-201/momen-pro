@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Colors } from '../theme/colors';
+import { FontFamilies } from '../theme/typography';
 
 interface QuranicReflectionProps {
   arabicText: string;
@@ -39,7 +40,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   arabic: {
-    fontFamily: Platform.select({ ios: 'Geeza Pro', android: 'serif', default: 'Amiri, Traditional Arabic, serif' }),
+    fontFamily: FontFamilies.amiriRegular,
     fontSize: 25,
     lineHeight: 40,
     textAlign: 'center',
@@ -63,12 +64,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   pillText: {
+    fontFamily: FontFamilies.sansMedium,
     color: Colors.primary,
     fontSize: 10,
     fontWeight: '500',
   },
   translation: {
-    fontFamily: Platform.select({ ios: 'Georgia', android: 'serif', default: 'Cormorant Garamond, Georgia, serif' }),
+    fontFamily: FontFamilies.serifItalic,
     fontStyle: 'italic',
     fontSize: 18,
     lineHeight: 23,

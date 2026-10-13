@@ -24,13 +24,12 @@ export const ArchWatermark: React.FC<ArchWatermarkProps> = ({ hasInnerDashed = f
 const styles = StyleSheet.create({
   ambientGlow: {
     position: 'absolute',
-    top: -90,
+    top: -64,
     alignSelf: 'center',
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    backgroundColor: Colors.goldGlow,
-    opacity: 0.8,
+    width: 256,
+    height: 256,
+    borderRadius: 128,
+    backgroundColor: 'rgba(229, 200, 142, 0.25)',
     ...(Platform.OS === 'web'
       ? { filter: 'blur(36px)' }
       : { shadowColor: Colors.gold, shadowOpacity: 0.35, shadowRadius: 36 }),
@@ -42,7 +41,7 @@ const styles = StyleSheet.create({
     right: 15,
     bottom: 24,
     borderWidth: 1,
-    borderColor: Colors.goldLight,
+    borderColor: 'rgba(200, 168, 107, 0.2)',
     borderTopLeftRadius: 180,
     borderTopRightRadius: 180,
     borderBottomLeftRadius: 40,
@@ -55,7 +54,7 @@ const styles = StyleSheet.create({
     right: 27,
     bottom: 36,
     borderWidth: 1,
-    borderColor: 'rgba(200, 168, 107, 0.16)',
+    borderColor: 'rgba(200, 168, 107, 0.14)',
     borderStyle: 'dashed',
     borderTopLeftRadius: 168,
     borderTopRightRadius: 168,
