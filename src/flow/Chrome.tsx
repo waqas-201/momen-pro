@@ -7,6 +7,7 @@ import { BrandHeader } from '../components/BrandHeader';
 import { StepProgress } from '../components/StepProgress';
 import { BottomCTA } from '../components/BottomCTA';
 import type { StepMeta } from './types';
+import { TOTAL_STEPS } from '../steps';
 
 interface ChromeProps {
   meta: StepMeta;
@@ -57,6 +58,7 @@ export const Chrome: React.FC<ChromeProps> = ({
         toStep={toStep}
         t={t}
         dir={dir}
+        totalSteps={TOTAL_STEPS}
       />
 
       <View style={styles.stage} testID="flow-stage">

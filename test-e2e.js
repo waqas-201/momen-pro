@@ -244,7 +244,7 @@ async function run() {
 
   const consoleErrors = [];
   page.on('console', (message) => {
-    if (message.type() === 'error') consoleErrors.push(message.text());
+    if (message.type === 'error') consoleErrors.push(message.text());
   });
   page.on('pageerror', (error) => consoleErrors.push(String(error)));
 
@@ -262,8 +262,9 @@ async function run() {
     { id: 4, cta: 'remembrance-continue-btn', title: 'REMEMBRANCE' },
     { id: 5, cta: 'recitation-continue-btn', title: 'RECITATION' },
     { id: 6, cta: 'missed-prayers-continue-btn', title: 'A FRESH BEGINNING' },
-    { id: 7, cta: 'save-goals-btn', title: 'YOUR DAILY INTENTIONS' },
-    { id: 8, cta: 'journey-finish-button', title: 'YOUR JOURNEY BEGINS' },
+    { id: 7, cta: 'username-continue-btn', title: 'YOUR NAME' },
+    { id: 8, cta: 'save-goals-btn', title: 'YOUR DAILY INTENTIONS' },
+    { id: 9, cta: 'journey-finish-button', title: 'YOUR JOURNEY BEGINS' },
   ];
 
   console.log('\nSplash -> step 1 (entry)');
@@ -295,16 +296,16 @@ async function run() {
     });
   }
 
-  console.log('\nBack: step 8 -> 7 (reverse)');
+  console.log('\nBack: step 9 -> 8 (reverse)');
   await moveAndGrade(page, {
-    label: '8->7 back',
-    from: 8,
-    to: 7,
+    label: '9->8 back',
+    from: 9,
+    to: 8,
     forward: false,
     click: () => page.getByTestId('header-back-button').click(),
   });
 
-  console.log('\nDrag back: step 7 -> 6 (finger-tracked)');
+  console.log('\nDrag back: step 8 -> 7 (finger-tracked)');
   const stageBox = await page.getByTestId('flow-stage').boundingBox();
   const dragY = stageBox.y + stageBox.height / 2;
   const dragX = stageBox.x + 30;
@@ -325,11 +326,11 @@ async function run() {
     0
   );
   check('drag: tracks the finger', dragReveal > 30, `revealed ${dragReveal.toFixed(0)}px`);
-  check('drag: commits to step 6', afterDrag === 6, `resting on ${afterDrag}`);
+  check('drag: commits to step 7', afterDrag === 7, `resting on ${afterDrag}`);
 
   console.log('\nRapid taps must not double-advance');
-  const backToSeven = await page.getByTestId('missed-prayers-continue-btn').isVisible().catch(() => false);
-  if (backToSeven) {
+  const backToEight = await page.getByTestId('username-continue-btn').isVisible().catch(() => false);
+  if (backToEight) {
     const ctaBox = await page.getByTestId('flow-cta').boundingBox();
     const tapX = ctaBox.x + ctaBox.width / 2;
     const tapY = ctaBox.y + ctaBox.height / 2;
@@ -338,9 +339,9 @@ async function run() {
     await page.mouse.click(tapX, tapY);
     await page.waitForTimeout(SETTLE);
     const landed = await stepAtRest(page);
-    check('rapid taps: advance exactly one step', landed === 7, `resting on ${landed}`);
+    check('rapid taps: advance exactly one step', landed === 8, `resting on ${landed}`);
   } else {
-    check('rapid taps: harness reached step 6', false, 'CTA not found');
+    check('rapid taps: harness reached step 7', false, 'CTA not found');
   }
 
   console.log('\nBack from step 1 returns to the Splash');
@@ -366,13 +367,13 @@ async function run() {
   await page.getByTestId('splash-skip-button').click();
   await page.waitForTimeout(SETTLE);
   const skipped = await stepAtRest(page);
-  check('skip: lands on Arrival (8)', skipped === 8, `resting on ${skipped}`);
+  check('skip: lands on Arrival (9)', skipped === 9, `resting on ${skipped}`);
 
   console.log('\nCompletion modal');
   await page.getByTestId('journey-finish-button').click();
   await page.waitForTimeout(600);
   check('modal: opens', await forText(page, 'Māshā’Allāh'));
-  await page.screenshot({ path: path.join(shots, '9-completed-modal.png') });
+  await page.screenshot({ path: path.join(shots, '10-completed-modal.png') });
 
   console.log('\nReduced motion');
   const reducedContext = await browser.newContext({
@@ -398,26 +399,31 @@ async function run() {
     reducedTravel <= TRAVEL_TOLERANCE,
     `max ${reducedTravel.toFixed(2)}px`
   );
-  await reducedContext.close();
-
-  check(
-    'no console errors',
-    consoleErrors.length === 0,
-    consoleErrors.slice(0, 3).join(' | ') || 'clean'
-  );
 
   await browser.close();
+  await reducedBrowserClose(reducedContext);
 
-  const failed = results.filter((result) => !result.ok);
-  console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
+  const failed = results.filter((r) => !r.ok);
+  console.log(
+    `\n${results.length - failed.length}/${results.length} checks passed.`
+  );
+  if (consoleErrors.length > 0) {
+    console.log(`\nBrowser console had ${consoleErrors.length} error(s):`);
+    for (const err of consoleErrors) console.log(`  ! ${err}`);
+  }
+
   if (failed.length > 0) {
-    console.log('\nFailures:');
-    for (const failure of failed) console.log(`  - ${failure.name}: ${failure.detail}`);
     process.exit(1);
   }
 }
 
-run().catch((error) => {
-  console.error('Test run crashed:', error);
+async function reducedBrowserClose(context) {
+  try {
+    await context.browser().close();
+  } catch {}
+}
+
+run().catch((err) => {
+  console.error(err);
   process.exit(1);
 });

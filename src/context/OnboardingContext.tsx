@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 
 export interface OnboardingState {
+  userName: string;
   dailyPrayersCount: string;
   prayerSpace: string;
   daroodFrequency: string;
@@ -11,9 +12,12 @@ export interface OnboardingState {
   missedPrayers: number;
   missedNotSure: boolean;
   targetPrayers: number;
+  targetDarood: number;
   targetDhikr: number;
   targetRecitation: number;
+  targetQadha: number;
   
+  setUserName: (val: string) => void;
   setDailyPrayersCount: (val: string) => void;
   setPrayerSpace: (val: string) => void;
   setDaroodFrequency: (val: string) => void;
@@ -24,13 +28,16 @@ export interface OnboardingState {
   setMissedPrayers: (val: number | ((prev: number) => number)) => void;
   setMissedNotSure: (val: boolean) => void;
   setTargetPrayers: (val: number | ((prev: number) => number)) => void;
+  setTargetDarood: (val: number | ((prev: number) => number)) => void;
   setTargetDhikr: (val: number | ((prev: number) => number)) => void;
   setTargetRecitation: (val: number | ((prev: number) => number)) => void;
+  setTargetQadha: (val: number | ((prev: number) => number)) => void;
 }
 
 const OnboardingContext = createContext<OnboardingState | null>(null);
 
 export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [userName, setUserName] = useState<string>('');
   const [dailyPrayersCount, setDailyPrayersCount] = useState<string>('5');
   const [prayerSpace, setPrayerSpace] = useState<string>('Mosque');
   const [daroodFrequency, setDaroodFrequency] = useState<string>('Every day');
@@ -41,8 +48,10 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [missedPrayers, setMissedPrayers] = useState<number>(8);
   const [missedNotSure, setMissedNotSure] = useState<boolean>(false);
   const [targetPrayers, setTargetPrayers] = useState<number>(5);
+  const [targetDarood, setTargetDarood] = useState<number>(33);
   const [targetDhikr, setTargetDhikr] = useState<number>(100);
   const [targetRecitation, setTargetRecitation] = useState<number>(10);
+  const [targetQadha, setTargetQadha] = useState<number>(1);
 
   const toggleAdhkarRoutine = (routine: string) => {
     if (routine === 'No current routine') {
@@ -63,6 +72,8 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   return (
     <OnboardingContext.Provider
       value={{
+        userName,
+        setUserName,
         dailyPrayersCount,
         setDailyPrayersCount,
         prayerSpace,
@@ -83,10 +94,14 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setMissedNotSure,
         targetPrayers,
         setTargetPrayers,
+        targetDarood,
+        setTargetDarood,
         targetDhikr,
         setTargetDhikr,
         targetRecitation,
         setTargetRecitation,
+        targetQadha,
+        setTargetQadha,
       }}
     >
       {children}

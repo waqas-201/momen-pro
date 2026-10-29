@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Check, Sun, Sparkles, BookOpen } from 'lucide-react-native';
+import { Check, Sun, Sparkles, BookOpen, Heart, RotateCcw } from 'lucide-react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -14,14 +14,28 @@ import { DURATION, EASE } from '../flow/motion';
 import { useOnboarding } from '../context/OnboardingContext';
 
 export const ArrivalStep: React.FC = () => {
-  const { targetPrayers, targetDhikr, targetRecitation, recitationUnit } =
-    useOnboarding();
+  const {
+    userName,
+    targetPrayers,
+    targetDarood,
+    targetDhikr,
+    targetRecitation,
+    recitationUnit,
+    missedPrayers,
+    targetQadha,
+  } = useOnboarding();
 
   const prayersDisplay = `${targetPrayers || 5} prayers`;
+  const daroodDisplay = `${targetDarood || 33} salawat`;
   const dhikrDisplay = `${targetDhikr || 100} remembrances`;
   const recitationDisplay = `${targetRecitation || 10} ${
     recitationUnit ? recitationUnit.toLowerCase() : 'ayahs'
   }`;
+  const qadhaDisplay = `${targetQadha || 1} makeup / day`;
+
+  const headingText = userName.trim()
+    ? `${userName.trim()}, your intentions are set.`
+    : 'Your intentions are set.';
 
   // The payoff of the whole Flow: the seal settles a beat after the screen does.
   const seal = useSharedValue(0);
@@ -49,7 +63,7 @@ export const ArrivalStep: React.FC = () => {
         <Animated.View style={[styles.successSeal, sealStyle]}>
           <Check size={18} color="#083B32" strokeWidth={2.4} />
         </Animated.View>
-        <Text style={styles.heading}>Your intentions are set.</Text>
+        <Text style={styles.heading}>{headingText}</Text>
         <Text style={styles.subheading}>
           May Allah grant barakah in every step of your journey.
         </Text>
@@ -60,7 +74,7 @@ export const ArrivalStep: React.FC = () => {
 
         <View style={styles.goalRow}>
           <View style={styles.goalLabelGroup}>
-            <Sun size={15} color="#083B32" strokeWidth={2.2} />
+            <Sun size={14} color="#083B32" strokeWidth={2.2} />
             <Text style={styles.goalName}>Prayer</Text>
           </View>
           <Text style={styles.goalValue}>{prayersDisplay}</Text>
@@ -68,7 +82,15 @@ export const ArrivalStep: React.FC = () => {
 
         <View style={styles.goalRow}>
           <View style={styles.goalLabelGroup}>
-            <Sparkles size={15} color="#083B32" strokeWidth={2.2} />
+            <Heart size={14} color="#083B32" strokeWidth={2.2} />
+            <Text style={styles.goalName}>Darood</Text>
+          </View>
+          <Text style={styles.goalValue}>{daroodDisplay}</Text>
+        </View>
+
+        <View style={styles.goalRow}>
+          <View style={styles.goalLabelGroup}>
+            <Sparkles size={14} color="#083B32" strokeWidth={2.2} />
             <Text style={styles.goalName}>Dhikr</Text>
           </View>
           <Text style={styles.goalValue}>{dhikrDisplay}</Text>
@@ -76,11 +98,21 @@ export const ArrivalStep: React.FC = () => {
 
         <View style={styles.goalRow}>
           <View style={styles.goalLabelGroup}>
-            <BookOpen size={15} color="#083B32" strokeWidth={2.2} />
+            <BookOpen size={14} color="#083B32" strokeWidth={2.2} />
             <Text style={styles.goalName}>Qur’an</Text>
           </View>
           <Text style={styles.goalValue}>{recitationDisplay}</Text>
         </View>
+
+        {missedPrayers > 0 && (
+          <View style={styles.goalRow}>
+            <View style={styles.goalLabelGroup}>
+              <RotateCcw size={14} color="#083B32" strokeWidth={2.2} />
+              <Text style={styles.goalName}>Qadha</Text>
+            </View>
+            <Text style={styles.goalValue}>{qadhaDisplay}</Text>
+          </View>
+        )}
       </StageBeat>
     </View>
   );
@@ -111,15 +143,15 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontFamily: FontFamilies.serifSemiBold,
-    fontSize: 23,
-    lineHeight: 28,
+    fontSize: 22,
+    lineHeight: 27,
     textAlign: 'center',
     color: '#083B32',
     letterSpacing: -0.2,
   },
   subheading: {
     fontFamily: FontFamilies.sansRegular,
-    fontSize: 12.5,
+    fontSize: 12,
     lineHeight: 16,
     textAlign: 'center',
     color: '#57534E',
@@ -132,7 +164,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 10,
     paddingHorizontal: 14,
-    gap: 8,
+    gap: 7,
     width: '100%',
   },
   cardHeaderTitle: {
@@ -154,12 +186,12 @@ const styles = StyleSheet.create({
   },
   goalName: {
     fontFamily: FontFamilies.sansMedium,
-    fontSize: 12.5,
+    fontSize: 12,
     color: '#083B32',
   },
   goalValue: {
     fontFamily: FontFamilies.sansSemiBold,
-    fontSize: 12.5,
+    fontSize: 12,
     color: '#083B32',
   },
 });

@@ -1,6 +1,15 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Sun, Sparkles, BookOpen, Minus, Plus, ChevronDown } from 'lucide-react-native';
+import {
+  Sun,
+  Sparkles,
+  BookOpen,
+  Heart,
+  RotateCcw,
+  Minus,
+  Plus,
+  ChevronDown,
+} from 'lucide-react-native';
 import { FontFamilies } from '../theme/typography';
 import { QuranicReflection } from '../components/QuranicReflection';
 import { StageBeat } from '../flow/StageBeat';
@@ -8,14 +17,21 @@ import { useOnboarding } from '../context/OnboardingContext';
 
 export const DailyIntentionsStep: React.FC = () => {
   const {
+    userName,
     targetPrayers,
     setTargetPrayers,
+    targetDarood,
+    setTargetDarood,
     targetDhikr,
     setTargetDhikr,
+    adhkarRoutines,
     targetRecitation,
     setTargetRecitation,
     recitationUnit,
     setRecitationUnit,
+    missedPrayers,
+    targetQadha,
+    setTargetQadha,
   } = useOnboarding();
 
   const cycleRecitationUnit = () => {
@@ -24,6 +40,11 @@ export const DailyIntentionsStep: React.FC = () => {
     const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % units.length;
     setRecitationUnit(units[nextIndex]);
   };
+
+  const activeRoutines = adhkarRoutines.filter((r) => r !== 'No current routine');
+  const greeting = userName.trim()
+    ? `${userName.trim()}, set your daily intentions.`
+    : 'Set your daily intentions.';
 
   return (
     <View style={styles.mainContent}>
@@ -34,16 +55,17 @@ export const DailyIntentionsStep: React.FC = () => {
       />
 
       <View style={styles.questionSection}>
-        <Text style={styles.title}>Set your daily intentions.</Text>
+        <Text style={styles.title}>{greeting}</Text>
         <Text style={styles.subtitle}>
           Start with achievable goals. Adjust them any time later.
         </Text>
       </View>
 
       <StageBeat style={styles.targetsContainer}>
+        {/* 1. Prayer */}
         <View style={styles.targetRow}>
           <View style={styles.targetLabelGroup}>
-            <Sun size={16} color="#083B32" strokeWidth={2.2} />
+            <Sun size={15} color="#083B32" strokeWidth={2.2} />
             <Text style={styles.targetTitle}>Prayer</Text>
           </View>
           <View style={styles.stepperGroup}>
@@ -54,7 +76,7 @@ export const DailyIntentionsStep: React.FC = () => {
               testID="target-prayer-minus"
               activeOpacity={0.7}
             >
-              <Minus size={12} color="#083B32" strokeWidth={2.4} />
+              <Minus size={11} color="#083B32" strokeWidth={2.4} />
             </TouchableOpacity>
             <View style={styles.valueGroup}>
               <Text style={styles.numberText}>{targetPrayers}</Text>
@@ -67,45 +89,91 @@ export const DailyIntentionsStep: React.FC = () => {
               testID="target-prayer-plus"
               activeOpacity={0.7}
             >
-              <Plus size={12} color="#083B32" strokeWidth={2.4} />
+              <Plus size={11} color="#083B32" strokeWidth={2.4} />
             </TouchableOpacity>
           </View>
         </View>
 
+        {/* 2. Darood o Salam */}
         <View style={styles.targetRow}>
           <View style={styles.targetLabelGroup}>
-            <Sparkles size={16} color="#083B32" strokeWidth={2.2} />
-            <Text style={styles.targetTitle}>Dhikr</Text>
+            <Heart size={15} color="#083B32" strokeWidth={2.2} />
+            <Text style={styles.targetTitle}>Darood</Text>
           </View>
           <View style={styles.stepperGroup}>
             <TouchableOpacity
               style={styles.stepperBtn}
-              onPress={() => setTargetDhikr((prev) => Math.max(10, prev - 10))}
+              onPress={() => setTargetDarood((prev) => Math.max(10, prev - 10))}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              testID="target-dhikr-minus"
+              testID="target-darood-minus"
               activeOpacity={0.7}
             >
-              <Minus size={12} color="#083B32" strokeWidth={2.4} />
+              <Minus size={11} color="#083B32" strokeWidth={2.4} />
             </TouchableOpacity>
             <View style={styles.valueGroup}>
-              <Text style={styles.numberText}>{targetDhikr}</Text>
+              <Text style={styles.numberText}>{targetDarood}</Text>
               <Text style={styles.unitText}>/ day</Text>
             </View>
             <TouchableOpacity
               style={styles.stepperBtn}
-              onPress={() => setTargetDhikr((prev) => prev + 10)}
+              onPress={() => setTargetDarood((prev) => prev + 10)}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              testID="target-dhikr-plus"
+              testID="target-darood-plus"
               activeOpacity={0.7}
             >
-              <Plus size={12} color="#083B32" strokeWidth={2.4} />
+              <Plus size={11} color="#083B32" strokeWidth={2.4} />
             </TouchableOpacity>
           </View>
         </View>
 
+        {/* 3. Dhikr with Routine Context */}
+        <View style={styles.dhikrCard}>
+          <View style={styles.targetRowInner}>
+            <View style={styles.targetLabelGroup}>
+              <Sparkles size={15} color="#083B32" strokeWidth={2.2} />
+              <Text style={styles.targetTitle}>Dhikr</Text>
+            </View>
+            <View style={styles.stepperGroup}>
+              <TouchableOpacity
+                style={styles.stepperBtn}
+                onPress={() => setTargetDhikr((prev) => Math.max(10, prev - 10))}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                testID="target-dhikr-minus"
+                activeOpacity={0.7}
+              >
+                <Minus size={11} color="#083B32" strokeWidth={2.4} />
+              </TouchableOpacity>
+              <View style={styles.valueGroup}>
+                <Text style={styles.numberText}>{targetDhikr}</Text>
+                <Text style={styles.unitText}>/ day</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.stepperBtn}
+                onPress={() => setTargetDhikr((prev) => prev + 10)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                testID="target-dhikr-plus"
+                activeOpacity={0.7}
+              >
+                <Plus size={11} color="#083B32" strokeWidth={2.4} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {activeRoutines.length > 0 && (
+            <View style={styles.routinesRow}>
+              {activeRoutines.map((routine) => (
+                <View key={routine} style={styles.routineBadge}>
+                  <Text style={styles.routineBadgeText}>{routine}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* 4. Qur'an */}
         <View style={styles.targetRow}>
           <View style={styles.targetLabelGroup}>
-            <BookOpen size={16} color="#083B32" strokeWidth={2.2} />
+            <BookOpen size={15} color="#083B32" strokeWidth={2.2} />
             <Text style={styles.targetTitle}>Qur’an</Text>
           </View>
           <View style={styles.stepperGroup}>
@@ -116,7 +184,7 @@ export const DailyIntentionsStep: React.FC = () => {
               testID="target-recitation-minus"
               activeOpacity={0.7}
             >
-              <Minus size={12} color="#083B32" strokeWidth={2.4} />
+              <Minus size={11} color="#083B32" strokeWidth={2.4} />
             </TouchableOpacity>
             <View style={styles.valueGroup}>
               <Text style={styles.numberText}>{targetRecitation}</Text>
@@ -140,13 +208,50 @@ export const DailyIntentionsStep: React.FC = () => {
               testID="target-recitation-plus"
               activeOpacity={0.7}
             >
-              <Plus size={12} color="#083B32" strokeWidth={2.4} />
+              <Plus size={11} color="#083B32" strokeWidth={2.4} />
             </TouchableOpacity>
           </View>
         </View>
 
+        {/* 5. Qadha Makeup (conditional if missedPrayers > 0) */}
+        {missedPrayers > 0 && (
+          <View style={styles.targetRow}>
+            <View style={styles.targetLabelGroup}>
+              <RotateCcw size={15} color="#083B32" strokeWidth={2.2} />
+              <View>
+                <Text style={styles.targetTitle}>Qadha</Text>
+                <Text style={styles.targetSubtitle}>makeup goal</Text>
+              </View>
+            </View>
+            <View style={styles.stepperGroup}>
+              <TouchableOpacity
+                style={styles.stepperBtn}
+                onPress={() => setTargetQadha((prev) => Math.max(1, prev - 1))}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                testID="target-qadha-minus"
+                activeOpacity={0.7}
+              >
+                <Minus size={11} color="#083B32" strokeWidth={2.4} />
+              </TouchableOpacity>
+              <View style={styles.valueGroup}>
+                <Text style={styles.numberText}>{targetQadha}</Text>
+                <Text style={styles.unitText}>/ day</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.stepperBtn}
+                onPress={() => setTargetQadha((prev) => Math.min(5, prev + 1))}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                testID="target-qadha-plus"
+                activeOpacity={0.7}
+              >
+                <Plus size={11} color="#083B32" strokeWidth={2.4} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         <Text style={styles.footnote}>
-          Dhikr total includes your selected adhkar routines.
+          Every deed done consistently, even if small, is beloved to Allah.
         </Text>
       </StageBeat>
     </View>
@@ -167,15 +272,15 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: FontFamilies.serifSemiBold,
-    fontSize: 23,
-    lineHeight: 28,
+    fontSize: 22,
+    lineHeight: 27,
     textAlign: 'center',
     color: '#083B32',
     letterSpacing: -0.2,
   },
   subtitle: {
     fontFamily: FontFamilies.sansRegular,
-    fontSize: 12.5,
+    fontSize: 12,
     lineHeight: 16,
     textAlign: 'center',
     color: '#57534E',
@@ -183,18 +288,52 @@ const styles = StyleSheet.create({
   },
   targetsContainer: {
     width: '100%',
-    gap: 7,
+    gap: 6,
   },
   targetRow: {
-    height: 46,
+    height: 44,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 14,
+    paddingHorizontal: 13,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E7E4DA',
     backgroundColor: '#FFFFFF',
+  },
+  dhikrCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E7E4DA',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 13,
+    paddingVertical: 6,
+    gap: 5,
+  },
+  targetRowInner: {
+    height: 32,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  routinesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    paddingTop: 2,
+  },
+  routineBadge: {
+    backgroundColor: '#F5EFE3',
+    borderColor: '#C8A86B',
+    borderWidth: 0.8,
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  routineBadgeText: {
+    fontFamily: FontFamilies.sansMedium,
+    fontSize: 9.5,
+    color: '#083B32',
   },
   targetLabelGroup: {
     flexDirection: 'row',
@@ -207,15 +346,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#083B32',
   },
+  targetSubtitle: {
+    fontFamily: FontFamilies.sansRegular,
+    fontSize: 9,
+    color: '#78716C',
+    marginTop: -2,
+  },
   stepperGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
   stepperBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: '#F4EDDF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -224,12 +369,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 4,
-    minWidth: 54,
+    minWidth: 50,
     justifyContent: 'center',
   },
   numberText: {
     fontFamily: FontFamilies.sansSemiBold,
-    fontSize: 17,
+    fontSize: 16,
     color: '#083B32',
   },
   unitText: {
@@ -240,7 +385,7 @@ const styles = StyleSheet.create({
   unitSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: 2,
   },
   footnote: {
     fontFamily: FontFamilies.sansRegular,

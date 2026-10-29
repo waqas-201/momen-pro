@@ -8,6 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Colors } from '../theme/colors';
 import { FontFamilies } from '../theme/typography';
+import { TOTAL_STEPS } from '../steps';
 
 interface StepProgressProps {
   title: string;
@@ -76,7 +77,7 @@ export const StepProgress: React.FC<StepProgressProps> = ({
   toStep,
   t,
   dir,
-  totalSteps = 7,
+  totalSteps = TOTAL_STEPS,
 }) => {
   const [trackWidth, setTrackWidth] = useState(0);
 
