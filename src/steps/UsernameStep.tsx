@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -6,88 +6,149 @@ import {
   Pressable,
   StyleSheet,
   Platform,
+  Keyboard,
+  KeyboardAvoidingView,
 } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { User } from 'lucide-react-native';
 import { FontFamilies } from '../theme/typography';
 import { QuranicReflection } from '../components/QuranicReflection';
 import { StageBeat } from '../flow/StageBeat';
 import { useOnboarding } from '../context/OnboardingContext';
+import { EASE } from '../flow/motion';
 
 export const UsernameStep: React.FC = () => {
   const { userName, setUserName } = useOnboarding();
   const inputRef = useRef<TextInput>(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setKeyboardVisible(true)
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setKeyboardVisible(false)
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const isLifted = isFocused || keyboardVisible;
+  const lift = useSharedValue(0);
+
+  useEffect(() => {
+    lift.value = withTiming(isLifted ? 1 : 0, {
+      duration: 260,
+      easing: EASE,
+    });
+  }, [isLifted, lift]);
+
+  const animatedLiftStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: -90 * lift.value }],
+  }));
+
+  const animatedReflectionStyle = useAnimatedStyle(() => ({
+    opacity: 1 - 0.65 * lift.value,
+    transform: [{ translateY: -20 * lift.value }],
+  }));
 
   const handleCardPress = () => {
     inputRef.current?.focus();
   };
 
   return (
-    <View style={styles.mainContent}>
-      <QuranicReflection
-        arabicText="وَجَعَلْنَاكُمْ شُعُوبًا وَقَبَائِلَ لِتَعَارَفُوا"
-        reference="Surah Al-Hujurat · 49:13 · excerpt"
-        translation="“And We made you into peoples and tribes, that you may know one another.”"
-      />
-
-      <View style={styles.questionSection}>
-        <Text style={styles.title}>What should we call you?</Text>
-        <Text style={styles.subtitle}>
-          Your name personalizes your daily intentions and sacred journey.
-        </Text>
-      </View>
-
-      <StageBeat style={styles.entrySection}>
-        <Pressable
-          style={[
-            styles.inputCard,
-            isFocused ? styles.inputCardFocused : styles.inputCardBlurred,
-          ]}
-          onPress={handleCardPress}
-          accessible={false}
-        >
-          <View style={styles.iconContainer} pointerEvents="none">
-            <User
-              size={18}
-              color={isFocused ? '#083B32' : '#78716C'}
-              strokeWidth={2.2}
-            />
-          </View>
-          <TextInput
-            ref={inputRef}
-            style={styles.textInput}
-            value={userName}
-            onChangeText={setUserName}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            placeholder="Enter your name"
-            placeholderTextColor="#A8A29E"
-            autoCapitalize="words"
-            autoCorrect={false}
-            maxLength={32}
-            selectionColor="#083B32"
-            cursorColor="#083B32"
-            returnKeyType="done"
-            testID="username-input"
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={styles.keyboardAvoid}
+    >
+      <View style={styles.mainContent}>
+        <Animated.View style={animatedReflectionStyle}>
+          <QuranicReflection
+            arabicText="وَجَعَلْنَاكُمْ شُعُوبًا وَقَبَائِلَ لِتَعَارَفُوا"
+            reference="Surah Al-Hujurat · 49:13 · excerpt"
+            translation="“And We made you into peoples and tribes, that you may know one another.”"
           />
-        </Pressable>
+        </Animated.View>
 
-        <View style={styles.guidanceBanner}>
-          <Text style={styles.bannerText}>
-            You can always update this anytime in your profile settings.
-          </Text>
-        </View>
-      </StageBeat>
-    </View>
+        <Animated.View style={[styles.interactiveContent, animatedLiftStyle]}>
+          <View style={styles.questionSection}>
+            <Text style={styles.title}>What should we call you?</Text>
+            <Text style={styles.subtitle}>
+              Your name personalizes your daily intentions and sacred journey.
+            </Text>
+          </View>
+
+          <StageBeat style={styles.entrySection}>
+            <Pressable
+              style={[
+                styles.inputCard,
+                isFocused ? styles.inputCardFocused : styles.inputCardBlurred,
+              ]}
+              onPress={handleCardPress}
+              accessible={false}
+            >
+              <View style={styles.iconContainer} pointerEvents="none">
+                <User
+                  size={18}
+                  color={isFocused ? '#083B32' : '#78716C'}
+                  strokeWidth={2.2}
+                />
+              </View>
+              <TextInput
+                ref={inputRef}
+                style={styles.textInput}
+                value={userName}
+                onChangeText={setUserName}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                placeholder="Enter your name"
+                placeholderTextColor="#A8A29E"
+                autoCapitalize="words"
+                autoCorrect={false}
+                maxLength={32}
+                selectionColor="#083B32"
+                cursorColor="#083B32"
+                returnKeyType="done"
+                testID="username-input"
+              />
+            </Pressable>
+
+            <View style={styles.guidanceBanner}>
+              <Text style={styles.bannerText}>
+                You can always update this anytime in your profile settings.
+              </Text>
+            </View>
+          </StageBeat>
+        </Animated.View>
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
+  keyboardAvoid: {
+    flex: 1,
+    width: '100%',
+  },
   mainContent: {
     flex: 1,
     justifyContent: 'space-evenly',
     paddingHorizontal: 20,
     paddingVertical: 4,
+  },
+  interactiveContent: {
+    width: '100%',
+    gap: 16,
+    alignItems: 'center',
   },
   questionSection: {
     alignItems: 'center',
@@ -155,6 +216,7 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     paddingHorizontal: 12,
     alignItems: 'center',
+    width: '100%',
   },
   bannerText: {
     fontFamily: FontFamilies.sansRegular,
