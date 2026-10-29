@@ -1,7 +1,7 @@
 import type { StageComponent, StepMeta } from '../flow/types';
 import { PrayersStep } from './PrayersStep';
-import { DaroodStep } from './DaroodStep';
 import { PrayerSpaceStep } from './PrayerSpaceStep';
+import { DaroodStep } from './DaroodStep';
 import { RemembranceStep } from './RemembranceStep';
 import { RecitationStep } from './RecitationStep';
 import { MissedPrayersStep } from './MissedPrayersStep';
@@ -23,8 +23,8 @@ export const TOTAL_STEPS = 8;
  */
 export const STAGES: Record<number, StageComponent> = {
   1: PrayersStep,
-  2: DaroodStep,
-  3: PrayerSpaceStep,
+  2: PrayerSpaceStep,
+  3: DaroodStep,
   4: RemembranceStep,
   5: RecitationStep,
   6: MissedPrayersStep,
@@ -40,14 +40,14 @@ export const META: Record<number, StepMeta> = {
     cta: { label: 'Continue', testID: 'prayers-continue-btn' },
   },
   2: {
-    title: 'Your Darood o Salam',
+    title: 'Your Prayer Space',
     countLabel: `2 of ${TOTAL_STEPS}`,
-    cta: { label: 'Continue', testID: 'darood-continue-btn' },
+    cta: { label: 'Continue', testID: 'prayer-space-continue-btn' },
   },
   3: {
-    title: 'Your Prayer Space',
+    title: 'Your Darood o Salam',
     countLabel: `3 of ${TOTAL_STEPS}`,
-    cta: { label: 'Continue', testID: 'prayer-space-continue-btn' },
+    cta: { label: 'Continue', testID: 'darood-continue-btn' },
   },
   4: {
     title: 'Your Remembrance',

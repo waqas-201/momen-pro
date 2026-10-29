@@ -18,15 +18,31 @@ export const ArrivalStep: React.FC = () => {
     userName,
     targetPrayers,
     targetDarood,
-    targetDhikr,
+    adhkarRoutines,
     targetRecitation,
     recitationUnit,
     targetQadha,
   } = useOnboarding();
 
   const prayersDisplay = `${targetPrayers || 5} prayers`;
-  const daroodDisplay = `${targetDarood || 33} salawat`;
-  const dhikrDisplay = `${targetDhikr || 100} remembrances`;
+  const daroodDisplay =
+    targetDarood > 0 ? `${targetDarood} salawat` : 'Starting fresh';
+
+  const activeDhikr = adhkarRoutines.filter((r) => r !== 'No current routine');
+  const dhikrDisplay =
+    activeDhikr.length === 0
+      ? 'Starting fresh'
+      : activeDhikr.length === 4
+      ? 'All daily azkar'
+      : activeDhikr
+          .map((r) => {
+            if (r === 'Morning azkar') return 'Morning';
+            if (r === 'Evening azkar') return 'Evening';
+            if (r === 'After prayer') return 'After prayers';
+            return r;
+          })
+          .join(', ');
+
   const recitationDisplay = `${targetRecitation || 10} ${
     recitationUnit ? recitationUnit.toLowerCase() : 'ayahs'
   }`;
@@ -126,18 +142,17 @@ const styles = StyleSheet.create({
   },
   confirmationHeader: {
     alignItems: 'center',
-    paddingHorizontal: 12,
-    gap: 4,
+    gap: 5,
   },
   successSeal: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#EAF0EA',
-    borderWidth: 1,
-    borderColor: '#C8A86B',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#F4EDDF',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#C8A86B',
     marginBottom: 2,
   },
   heading: {
@@ -150,27 +165,26 @@ const styles = StyleSheet.create({
   },
   subheading: {
     fontFamily: FontFamilies.sansRegular,
-    fontSize: 12,
+    fontSize: 12.5,
     lineHeight: 16,
     textAlign: 'center',
     color: '#57534E',
-    paddingHorizontal: 10,
+    paddingHorizontal: 16,
   },
   savedGoalsCard: {
     backgroundColor: '#FFFFFF',
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: '#DFDCD2',
-    borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    gap: 7,
-    width: '100%',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 9,
   },
   cardHeaderTitle: {
     fontFamily: FontFamilies.sansSemiBold,
-    fontSize: 9.5,
-    letterSpacing: 0.5,
-    color: '#083B32',
+    fontSize: 10,
+    letterSpacing: 0.8,
+    color: '#C8A86B',
     marginBottom: 2,
   },
   goalRow: {
@@ -181,16 +195,20 @@ const styles = StyleSheet.create({
   goalLabelGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
+    gap: 9,
+    flexShrink: 0,
   },
   goalName: {
     fontFamily: FontFamilies.sansMedium,
-    fontSize: 12,
+    fontSize: 13,
     color: '#083B32',
   },
   goalValue: {
     fontFamily: FontFamilies.sansSemiBold,
-    fontSize: 12,
+    fontSize: 13,
     color: '#083B32',
+    textAlign: 'right',
+    flexShrink: 1,
+    marginLeft: 10,
   },
 });

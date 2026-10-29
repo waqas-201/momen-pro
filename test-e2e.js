@@ -257,8 +257,8 @@ async function run() {
 
   const STEPS = [
     { id: 1, cta: 'prayers-continue-btn', title: 'PRAYERS' },
-    { id: 2, cta: 'darood-continue-btn', title: 'DAROOD O SALAM' },
-    { id: 3, cta: 'prayer-space-continue-btn', title: 'PRAYER SPACE' },
+    { id: 2, cta: 'prayer-space-continue-btn', title: 'PRAYER SPACE' },
+    { id: 3, cta: 'darood-continue-btn', title: 'DAROOD O SALAM' },
     { id: 4, cta: 'remembrance-continue-btn', title: 'REMEMBRANCE' },
     { id: 5, cta: 'recitation-continue-btn', title: 'RECITATION' },
     { id: 6, cta: 'missed-prayers-continue-btn', title: 'A FRESH BEGINNING' },

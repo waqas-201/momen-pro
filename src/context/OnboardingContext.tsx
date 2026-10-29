@@ -45,13 +45,13 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [recitesEveryDay, setRecitesEveryDay] = useState<string>('Yes');
   const [recitationAmount, setRecitationAmount] = useState<number>(10);
   const [recitationUnit, setRecitationUnit] = useState<string>('Ayahs');
-  const [missedPrayers, setMissedPrayers] = useState<number>(8);
+  const [missedPrayers, setMissedPrayers] = useState<number>(0);
   const [missedNotSure, setMissedNotSure] = useState<boolean>(false);
   const [targetPrayers, setTargetPrayers] = useState<number>(5);
   const [targetDarood, setTargetDarood] = useState<number>(33);
   const [targetDhikr, setTargetDhikr] = useState<number>(100);
   const [targetRecitation, setTargetRecitation] = useState<number>(10);
-  const [targetQadha, setTargetQadha] = useState<number>(1);
+  const [targetQadha, setTargetQadha] = useState<number>(0);
 
   const toggleAdhkarRoutine = (routine: string) => {
     if (routine === 'No current routine') {

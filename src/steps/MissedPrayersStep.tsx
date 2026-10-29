@@ -15,17 +15,31 @@ import { useOnboarding } from '../context/OnboardingContext';
 const QUICK_PILLS = ['0', '5', '10', '25', '50+'];
 
 export const MissedPrayersStep: React.FC = () => {
-  const { missedPrayers, setMissedPrayers, missedNotSure, setMissedNotSure } =
-    useOnboarding();
+  const {
+    missedPrayers,
+    setMissedPrayers,
+    missedNotSure,
+    setMissedNotSure,
+    setTargetQadha,
+  } = useOnboarding();
 
   const handleToggleNotSure = () => {
-    setMissedNotSure(!missedNotSure);
+    const nextNotSure = !missedNotSure;
+    setMissedNotSure(nextNotSure);
+    if (nextNotSure) {
+      setTargetQadha(0);
+    }
   };
 
   const handleQuickPill = (val: string) => {
     const numericVal = parseInt(val.replace(/[^0-9]/g, ''), 10) || 0;
     setMissedPrayers(numericVal);
     setMissedNotSure(false);
+    if (numericVal > 0) {
+      setTargetQadha((prev) => (prev > 0 ? prev : 1));
+    } else {
+      setTargetQadha(0);
+    }
   };
 
   return (
@@ -54,6 +68,11 @@ export const MissedPrayersStep: React.FC = () => {
               const numericVal = parseInt(text.replace(/[^0-9]/g, ''), 10) || 0;
               setMissedPrayers(numericVal);
               if (missedNotSure) setMissedNotSure(false);
+              if (numericVal > 0) {
+                setTargetQadha((prev) => (prev > 0 ? prev : 1));
+              } else {
+                setTargetQadha(0);
+              }
             }}
             placeholder={missedNotSure ? 'Starting fresh' : '0'}
             placeholderTextColor="#A8A29E"

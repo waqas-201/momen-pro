@@ -19,10 +19,8 @@ import { useOnboarding } from '../context/OnboardingContext';
 const DHIKR_ROUTINE_OPTIONS = [
   { value: 'Morning azkar', label: 'Morning' },
   { value: 'Evening azkar', label: 'Evening' },
-  { value: 'After prayer', label: 'After prayer' },
+  { value: 'After prayer', label: 'After prayers' },
   { value: 'Before sleep', label: 'Before sleep' },
-  { value: 'Istighfar', label: 'Istighfar' },
-  { value: 'Daily tasbih', label: 'Tasbih' },
 ];
 
 export const DailyIntentionsStep: React.FC = () => {
@@ -32,8 +30,6 @@ export const DailyIntentionsStep: React.FC = () => {
     setTargetPrayers,
     targetDarood,
     setTargetDarood,
-    targetDhikr,
-    setTargetDhikr,
     adhkarRoutines,
     toggleAdhkarRoutine,
     targetRecitation,
@@ -45,20 +41,13 @@ export const DailyIntentionsStep: React.FC = () => {
     setTargetQadha,
   } = useOnboarding();
 
+  const activeRoutines = adhkarRoutines.filter((r) => r !== 'No current routine');
+
   const cycleRecitationUnit = () => {
     const units = ['Ayahs', 'Ruku', 'Para (Juz)'];
     const currentIndex = units.indexOf(recitationUnit);
     const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % units.length;
     setRecitationUnit(units[nextIndex]);
-  };
-
-  const handleToggleRoutine = (routineValue: string) => {
-    toggleAdhkarRoutine(routineValue);
-    // When activating, calibrate daily count if current target is below routine baseline
-    if (!adhkarRoutines.includes(routineValue)) {
-      const activeCount = adhkarRoutines.filter((r) => r !== 'No current routine').length + 1;
-      setTargetDhikr((prev) => Math.max(prev, activeCount * 33));
-    }
   };
 
   const greeting = userName.trim()
@@ -122,7 +111,7 @@ export const DailyIntentionsStep: React.FC = () => {
           <View style={styles.stepperGroup}>
             <TouchableOpacity
               style={styles.stepperBtn}
-              onPress={() => setTargetDarood((prev) => Math.max(10, prev - 10))}
+              onPress={() => setTargetDarood((prev) => Math.max(0, prev - 10))}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               testID="target-darood-minus"
               activeOpacity={0.7}
@@ -130,8 +119,8 @@ export const DailyIntentionsStep: React.FC = () => {
               <Minus size={11} color="#083B32" strokeWidth={2.4} />
             </TouchableOpacity>
             <View style={styles.valueGroup}>
-              <Text style={styles.numberText}>{targetDarood}</Text>
-              <Text style={styles.unitText}>/ day</Text>
+              <Text style={styles.numberText}>{targetDarood > 0 ? targetDarood : '0'}</Text>
+              <Text style={styles.unitText}>{targetDarood > 0 ? '/ day' : 'none'}</Text>
             </View>
             <TouchableOpacity
               style={styles.stepperBtn}
@@ -145,37 +134,18 @@ export const DailyIntentionsStep: React.FC = () => {
           </View>
         </View>
 
-        {/* 3. Dhikr with Selectable Comprehensive Routines */}
+        {/* 3. Dhikr (Non-numeric spiritual routines) */}
         <View style={styles.dhikrCard}>
           <View style={styles.targetRowInner}>
             <View style={styles.targetLabelGroup}>
               <Sparkles size={15} color="#083B32" strokeWidth={2.2} />
               <Text style={styles.targetTitle}>Dhikr</Text>
             </View>
-            <View style={styles.stepperGroup}>
-              <TouchableOpacity
-                style={styles.stepperBtn}
-                onPress={() => setTargetDhikr((prev) => Math.max(10, prev - 10))}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                testID="target-dhikr-minus"
-                activeOpacity={0.7}
-              >
-                <Minus size={11} color="#083B32" strokeWidth={2.4} />
-              </TouchableOpacity>
-              <View style={styles.valueGroup}>
-                <Text style={styles.numberText}>{targetDhikr}</Text>
-                <Text style={styles.unitText}>/ day</Text>
-              </View>
-              <TouchableOpacity
-                style={styles.stepperBtn}
-                onPress={() => setTargetDhikr((prev) => prev + 10)}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                testID="target-dhikr-plus"
-                activeOpacity={0.7}
-              >
-                <Plus size={11} color="#083B32" strokeWidth={2.4} />
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.routineStatusText}>
+              {activeRoutines.length === 0
+                ? 'No routine'
+                : `${activeRoutines.length} routine${activeRoutines.length > 1 ? 's' : ''}`}
+            </Text>
           </View>
 
           <View style={styles.routinesRow}>
@@ -190,7 +160,7 @@ export const DailyIntentionsStep: React.FC = () => {
                     styles.routinePill,
                     isSelected ? styles.routinePillActive : styles.routinePillInactive,
                   ]}
-                  onPress={() => handleToggleRoutine(item.value)}
+                  onPress={() => toggleAdhkarRoutine(item.value)}
                   activeOpacity={0.7}
                   testID={`intention-dhikr-${slug}`}
                   hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
@@ -349,20 +319,24 @@ const styles = StyleSheet.create({
     borderColor: '#E7E4DA',
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 13,
-    paddingVertical: 7,
-    gap: 6,
+    paddingVertical: 8,
+    gap: 7,
   },
   targetRowInner: {
-    height: 30,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  routineStatusText: {
+    fontFamily: FontFamilies.sansRegular,
+    fontSize: 11,
+    color: '#78716C',
   },
   routinesRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 5,
-    paddingTop: 2,
+    paddingTop: 1,
   },
   routinePill: {
     flexDirection: 'row',
