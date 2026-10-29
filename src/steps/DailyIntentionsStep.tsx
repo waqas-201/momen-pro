@@ -9,11 +9,21 @@ import {
   Minus,
   Plus,
   ChevronDown,
+  Check,
 } from 'lucide-react-native';
 import { FontFamilies } from '../theme/typography';
 import { QuranicReflection } from '../components/QuranicReflection';
 import { StageBeat } from '../flow/StageBeat';
 import { useOnboarding } from '../context/OnboardingContext';
+
+const DHIKR_ROUTINE_OPTIONS = [
+  { value: 'Morning azkar', label: 'Morning' },
+  { value: 'Evening azkar', label: 'Evening' },
+  { value: 'After prayer', label: 'After prayer' },
+  { value: 'Before sleep', label: 'Before sleep' },
+  { value: 'Istighfar', label: 'Istighfar' },
+  { value: 'Daily tasbih', label: 'Tasbih' },
+];
 
 export const DailyIntentionsStep: React.FC = () => {
   const {
@@ -25,6 +35,7 @@ export const DailyIntentionsStep: React.FC = () => {
     targetDhikr,
     setTargetDhikr,
     adhkarRoutines,
+    toggleAdhkarRoutine,
     targetRecitation,
     setTargetRecitation,
     recitationUnit,
@@ -41,7 +52,15 @@ export const DailyIntentionsStep: React.FC = () => {
     setRecitationUnit(units[nextIndex]);
   };
 
-  const activeRoutines = adhkarRoutines.filter((r) => r !== 'No current routine');
+  const handleToggleRoutine = (routineValue: string) => {
+    toggleAdhkarRoutine(routineValue);
+    // When activating, calibrate daily count if current target is below routine baseline
+    if (!adhkarRoutines.includes(routineValue)) {
+      const activeCount = adhkarRoutines.filter((r) => r !== 'No current routine').length + 1;
+      setTargetDhikr((prev) => Math.max(prev, activeCount * 33));
+    }
+  };
+
   const greeting = userName.trim()
     ? `${userName.trim()}, set your daily intentions.`
     : 'Set your daily intentions.';
@@ -126,7 +145,7 @@ export const DailyIntentionsStep: React.FC = () => {
           </View>
         </View>
 
-        {/* 3. Dhikr with Routine Context */}
+        {/* 3. Dhikr with Selectable Comprehensive Routines */}
         <View style={styles.dhikrCard}>
           <View style={styles.targetRowInner}>
             <View style={styles.targetLabelGroup}>
@@ -159,15 +178,38 @@ export const DailyIntentionsStep: React.FC = () => {
             </View>
           </View>
 
-          {activeRoutines.length > 0 && (
-            <View style={styles.routinesRow}>
-              {activeRoutines.map((routine) => (
-                <View key={routine} style={styles.routineBadge}>
-                  <Text style={styles.routineBadgeText}>{routine}</Text>
-                </View>
-              ))}
-            </View>
-          )}
+          <View style={styles.routinesRow}>
+            {DHIKR_ROUTINE_OPTIONS.map((item) => {
+              const isSelected = adhkarRoutines.includes(item.value);
+              const slug = item.label.toLowerCase().replace(/\s+/g, '-');
+
+              return (
+                <TouchableOpacity
+                  key={item.value}
+                  style={[
+                    styles.routinePill,
+                    isSelected ? styles.routinePillActive : styles.routinePillInactive,
+                  ]}
+                  onPress={() => handleToggleRoutine(item.value)}
+                  activeOpacity={0.7}
+                  testID={`intention-dhikr-${slug}`}
+                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                >
+                  {isSelected && (
+                    <Check size={9} color="#083B32" strokeWidth={2.8} />
+                  )}
+                  <Text
+                    style={[
+                      styles.routinePillText,
+                      isSelected && styles.routinePillTextActive,
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
 
         {/* 4. Qur'an */}
@@ -213,8 +255,8 @@ export const DailyIntentionsStep: React.FC = () => {
           </View>
         </View>
 
-        {/* 5. Qadha Makeup (conditional if missedPrayers > 0) */}
-        {missedPrayers > 0 && (
+        {/* 5. Qadha Makeup (Optional, can be decreased to 0 / left empty) */}
+        {(missedPrayers > 0 || targetQadha > 0) && (
           <View style={styles.targetRow}>
             <View style={styles.targetLabelGroup}>
               <RotateCcw size={15} color="#083B32" strokeWidth={2.2} />
@@ -226,7 +268,7 @@ export const DailyIntentionsStep: React.FC = () => {
             <View style={styles.stepperGroup}>
               <TouchableOpacity
                 style={styles.stepperBtn}
-                onPress={() => setTargetQadha((prev) => Math.max(1, prev - 1))}
+                onPress={() => setTargetQadha((prev) => Math.max(0, prev - 1))}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 testID="target-qadha-minus"
                 activeOpacity={0.7}
@@ -234,8 +276,8 @@ export const DailyIntentionsStep: React.FC = () => {
                 <Minus size={11} color="#083B32" strokeWidth={2.4} />
               </TouchableOpacity>
               <View style={styles.valueGroup}>
-                <Text style={styles.numberText}>{targetQadha}</Text>
-                <Text style={styles.unitText}>/ day</Text>
+                <Text style={styles.numberText}>{targetQadha > 0 ? targetQadha : '0'}</Text>
+                <Text style={styles.unitText}>{targetQadha > 0 ? '/ day' : 'none'}</Text>
               </View>
               <TouchableOpacity
                 style={styles.stepperBtn}
@@ -307,11 +349,11 @@ const styles = StyleSheet.create({
     borderColor: '#E7E4DA',
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 13,
-    paddingVertical: 6,
-    gap: 5,
+    paddingVertical: 7,
+    gap: 6,
   },
   targetRowInner: {
-    height: 32,
+    height: 30,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -319,20 +361,33 @@ const styles = StyleSheet.create({
   routinesRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
+    gap: 5,
     paddingTop: 2,
   },
-  routineBadge: {
+  routinePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  routinePillActive: {
     backgroundColor: '#F5EFE3',
     borderColor: '#C8A86B',
-    borderWidth: 0.8,
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
   },
-  routineBadgeText: {
+  routinePillInactive: {
+    backgroundColor: '#FAF9F6',
+    borderColor: '#E7E4DA',
+  },
+  routinePillText: {
     fontFamily: FontFamilies.sansMedium,
-    fontSize: 9.5,
+    fontSize: 10,
+    color: '#78716C',
+  },
+  routinePillTextActive: {
+    fontFamily: FontFamilies.sansSemiBold,
     color: '#083B32',
   },
   targetLabelGroup: {

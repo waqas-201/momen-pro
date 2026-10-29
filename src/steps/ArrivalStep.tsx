@@ -21,7 +21,6 @@ export const ArrivalStep: React.FC = () => {
     targetDhikr,
     targetRecitation,
     recitationUnit,
-    missedPrayers,
     targetQadha,
   } = useOnboarding();
 
@@ -31,7 +30,7 @@ export const ArrivalStep: React.FC = () => {
   const recitationDisplay = `${targetRecitation || 10} ${
     recitationUnit ? recitationUnit.toLowerCase() : 'ayahs'
   }`;
-  const qadhaDisplay = `${targetQadha || 1} makeup / day`;
+  const qadhaDisplay = `${targetQadha} makeup / day`;
 
   const headingText = userName.trim()
     ? `${userName.trim()}, your intentions are set.`
@@ -104,7 +103,7 @@ export const ArrivalStep: React.FC = () => {
           <Text style={styles.goalValue}>{recitationDisplay}</Text>
         </View>
 
-        {missedPrayers > 0 && (
+        {targetQadha > 0 && (
           <View style={styles.goalRow}>
             <View style={styles.goalLabelGroup}>
               <RotateCcw size={14} color="#083B32" strokeWidth={2.2} />
