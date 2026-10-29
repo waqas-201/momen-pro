@@ -1,5 +1,12 @@
-import React from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import React, { useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  StyleSheet,
+  Platform,
+} from 'react-native';
 import { User } from 'lucide-react-native';
 import { FontFamilies } from '../theme/typography';
 import { QuranicReflection } from '../components/QuranicReflection';
@@ -8,13 +15,19 @@ import { useOnboarding } from '../context/OnboardingContext';
 
 export const UsernameStep: React.FC = () => {
   const { userName, setUserName } = useOnboarding();
+  const inputRef = useRef<TextInput>(null);
+  const [isFocused, setIsFocused] = useState(false);
+
+  const handleCardPress = () => {
+    inputRef.current?.focus();
+  };
 
   return (
     <View style={styles.mainContent}>
       <QuranicReflection
-        arabicText="وَلِلَّهِ الْأَسْمَاءُ الْحُسْنَىٰ فَادْعُوهُ بِهَا"
-        reference="Surah Al-A‘raf · 7:180 · excerpt"
-        translation="“And to Allah belong the best names, so call upon Him by them.”"
+        arabicText="وَجَعَلْنَاكُمْ شُعُوبًا وَقَبَائِلَ لِتَعَارَفُوا"
+        reference="Surah Al-Hujurat · 49:13 · excerpt"
+        translation="“And We made you into peoples and tribes, that you may know one another.”"
       />
 
       <View style={styles.questionSection}>
@@ -25,22 +38,39 @@ export const UsernameStep: React.FC = () => {
       </View>
 
       <StageBeat style={styles.entrySection}>
-        <View style={styles.inputCard}>
-          <View style={styles.iconContainer}>
-            <User size={18} color="#083B32" strokeWidth={2.2} />
+        <Pressable
+          style={[
+            styles.inputCard,
+            isFocused ? styles.inputCardFocused : styles.inputCardBlurred,
+          ]}
+          onPress={handleCardPress}
+          accessible={false}
+        >
+          <View style={styles.iconContainer} pointerEvents="none">
+            <User
+              size={18}
+              color={isFocused ? '#083B32' : '#78716C'}
+              strokeWidth={2.2}
+            />
           </View>
           <TextInput
+            ref={inputRef}
             style={styles.textInput}
             value={userName}
             onChangeText={setUserName}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             placeholder="Enter your name"
             placeholderTextColor="#A8A29E"
             autoCapitalize="words"
             autoCorrect={false}
             maxLength={32}
+            selectionColor="#083B32"
+            cursorColor="#083B32"
+            returnKeyType="done"
             testID="username-input"
           />
-        </View>
+        </Pressable>
 
         <View style={styles.guidanceBanner}>
           <Text style={styles.bannerText}>
@@ -88,12 +118,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: 48,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#DFDCD2',
     borderRadius: 12,
     paddingHorizontal: 14,
     gap: 10,
+  },
+  inputCardBlurred: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#DFDCD2',
+  },
+  inputCardFocused: {
+    backgroundColor: '#FCFAF6',
+    borderWidth: 1.5,
+    borderColor: '#C8A86B',
   },
   iconContainer: {
     width: 24,
@@ -102,10 +139,13 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    fontFamily: FontFamilies.sansMedium,
+    height: '100%',
+    fontFamily: FontFamilies.sansSemiBold,
     fontSize: 16,
     color: '#083B32',
-    padding: 0,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    ...(Platform.OS === 'web' ? { outlineStyle: 'none' as any } : {}),
   },
   guidanceBanner: {
     backgroundColor: 'rgba(200, 168, 107, 0.1)',
