@@ -26,54 +26,56 @@ export const QuranicReflection: React.FC<QuranicReflectionProps> = ({
       </View>
 
       {/* Italic Translation */}
-      <Text style={styles.translation}>{translation}</Text>
+      <Text style={styles.translation} numberOfLines={2}>
+        {translation}
+      </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 28,
-    paddingVertical: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 6,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 6,
   },
   arabic: {
     fontFamily: FontFamilies.amiriRegular,
-    fontSize: 25,
-    lineHeight: 40,
+    fontSize: 21,
+    lineHeight: 33,
     textAlign: 'center',
     color: Colors.primary,
     fontWeight: '400',
-    direction: 'rtl',
+    writingDirection: 'rtl',
   },
   pillBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 5,
-    paddingHorizontal: 12,
+    paddingVertical: 3,
+    paddingHorizontal: 10,
     borderRadius: 9999,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.goldMedium,
-    gap: 6,
+    gap: 5,
   },
   pillStar: {
     color: Colors.gold,
-    fontSize: 10,
+    fontSize: 9,
   },
   pillText: {
     fontFamily: FontFamilies.sansMedium,
     color: Colors.primary,
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '500',
   },
   translation: {
     fontFamily: FontFamilies.serifItalic,
     fontStyle: 'italic',
-    fontSize: 18,
-    lineHeight: 23,
+    fontSize: 13,
+    lineHeight: 18,
     textAlign: 'center',
     color: Colors.textMuted,
     paddingHorizontal: 8,

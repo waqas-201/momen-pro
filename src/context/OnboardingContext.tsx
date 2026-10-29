@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState } from 'react';
 export interface OnboardingState {
   dailyPrayersCount: string;
   prayerSpace: string;
+  daroodFrequency: string;
   adhkarRoutines: string[];
   recitesEveryDay: string;
   recitationAmount: number;
@@ -15,6 +16,7 @@ export interface OnboardingState {
   
   setDailyPrayersCount: (val: string) => void;
   setPrayerSpace: (val: string) => void;
+  setDaroodFrequency: (val: string) => void;
   toggleAdhkarRoutine: (val: string) => void;
   setRecitesEveryDay: (val: string) => void;
   setRecitationAmount: (val: number | ((prev: number) => number)) => void;
@@ -30,7 +32,8 @@ const OnboardingContext = createContext<OnboardingState | null>(null);
 
 export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [dailyPrayersCount, setDailyPrayersCount] = useState<string>('5');
-  const [prayerSpace, setPrayerSpace] = useState<string>('Home');
+  const [prayerSpace, setPrayerSpace] = useState<string>('Mosque');
+  const [daroodFrequency, setDaroodFrequency] = useState<string>('Every day');
   const [adhkarRoutines, setAdhkarRoutines] = useState<string[]>(['Morning azkar', 'Evening azkar']);
   const [recitesEveryDay, setRecitesEveryDay] = useState<string>('Yes');
   const [recitationAmount, setRecitationAmount] = useState<number>(10);
@@ -64,6 +67,8 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setDailyPrayersCount,
         prayerSpace,
         setPrayerSpace,
+        daroodFrequency,
+        setDaroodFrequency,
         adhkarRoutines,
         toggleAdhkarRoutine,
         recitesEveryDay,

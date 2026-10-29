@@ -160,7 +160,7 @@ export const Typography: Record<string, TextStyle> = {
     lineHeight: 28,
   },
 
-  // Step indicator ("1 of 6", "YOUR PRAYERS")
+  // Step indicator ("1 of 7", "YOUR PRAYERS")
   stepCategory: {
     fontFamily: FontFamilies.sansSemiBold,
     fontWeight: '600',

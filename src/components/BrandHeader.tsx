@@ -27,7 +27,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
             testID="header-back-button"
           >
             {backText !== 'Done' && (
-              <ChevronLeft size={16} color={Colors.primary} strokeWidth={2.2} />
+              <ChevronLeft size={16} color={Colors.primary} strokeWidth={2.4} />
             )}
             <Text style={styles.backText}>{backText}</Text>
           </TouchableOpacity>
@@ -49,27 +49,27 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
 
 const styles = StyleSheet.create({
   header: {
-    height: 56,
+    height: 58,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginTop: 8,
+    paddingHorizontal: 16,
+    width: '100%',
   },
   leftContainer: {
-    width: 70,
+    width: 64,
     alignItems: 'flex-start',
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
     paddingVertical: 6,
     paddingHorizontal: 4,
   },
   backText: {
     fontFamily: FontFamilies.sansMedium,
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: '500',
     color: Colors.primary,
   },
@@ -79,10 +79,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logo: {
-    width: 90,
-    height: 38,
+    width: 82,
+    height: 65,
   },
   rightPlaceholder: {
-    width: 70,
+    width: 64,
   },
 });

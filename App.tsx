@@ -1,5 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, StatusBar, Platform, Modal, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useEffect } from 'react';
+import {
+  StyleSheet,
+  StatusBar,
+  Platform,
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   useFonts,
@@ -13,27 +20,18 @@ import {
   CormorantGaramond_600SemiBold,
   CormorantGaramond_700Bold,
 } from '@expo-google-fonts/cormorant-garamond';
-import {
-  Amiri_400Regular,
-  Amiri_700Bold,
-} from '@expo-google-fonts/amiri';
+import { Amiri_400Regular, Amiri_700Bold } from '@expo-google-fonts/amiri';
 import { OnboardingProvider } from './src/context/OnboardingContext';
-import { SplashScreen } from './src/screens/SplashScreen';
-import { ScreenPrayers } from './src/screens/ScreenPrayers';
-import { ScreenPrayerSpace } from './src/screens/ScreenPrayerSpace';
-import { ScreenRemembrance } from './src/screens/ScreenRemembrance';
-import { ScreenRecitation } from './src/screens/ScreenRecitation';
-import { ScreenMissedPrayers } from './src/screens/ScreenMissedPrayers';
-import { ScreenDailyIntentions } from './src/screens/ScreenDailyIntentions';
-import { ScreenJourneyBegins } from './src/screens/ScreenJourneyBegins';
+import { Flow } from './src/flow/Flow';
 import { Colors } from './src/theme/colors';
-import { FontFamilies } from './src/theme/typography';
+
+/** The design reference the screens were drawn against. Not a screen size. */
+const ARTBOARD_WIDTH = 390;
+const ARTBOARD_HEIGHT = 884;
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<number>(0);
-  const [journeyCompleted, setJourneyCompleted] = useState<boolean>(false);
-
-  const [fontsLoaded] = useFonts({
+  const { width, height } = useWindowDimensions();
+  const [fontsLoaded, fontError] = useFonts({
     PlusJakartaSans_400Regular,
     PlusJakartaSans_500Medium,
     PlusJakartaSans_600SemiBold,
@@ -59,172 +57,88 @@ export default function App() {
     }
   }, []);
 
-  const nextScreen = () => {
-    setCurrentScreen((prev) => Math.min(prev + 1, 7));
-  };
+  /**
+   * The artboard is a reference, never a constraint. On web the Flow is drawn at
+   * the artboard size but capped to the window: a frame larger than the viewport
+   * is centred, so its own `overflow: 'hidden'` would slice the top bar (Skip)
+   * and the bottom CTA off the screen. On native the window is the frame.
+   */
+  const frameSize =
+    Platform.OS === 'web'
+      ? {
+          width: Math.min(ARTBOARD_WIDTH, width),
+          height: Math.min(ARTBOARD_HEIGHT, height),
+        }
+      : null;
 
-  const prevScreen = () => {
-    setCurrentScreen((prev) => Math.max(prev - 1, 0));
-  };
+  // The rounded device chrome only makes sense once the design width is honoured.
+  const showFrameChrome =
+    Platform.OS === 'web' && width >= ARTBOARD_WIDTH && height >= 560;
 
-  const finishJourney = () => {
-    setJourneyCompleted(true);
-  };
-
-  const resetJourney = () => {
-    setJourneyCompleted(false);
-    setCurrentScreen(0);
-  };
-
-  const renderScreen = () => {
-    switch (currentScreen) {
-      case 0:
-        return (
-          <SplashScreen
-            onStart={nextScreen}
-            onSkip={() => setCurrentScreen(7)}
-            onSignIn={() => setCurrentScreen(1)}
-          />
-        );
-      case 1:
-        return <ScreenPrayers onBack={prevScreen} onNext={nextScreen} />;
-      case 2:
-        return <ScreenPrayerSpace onBack={prevScreen} onNext={nextScreen} />;
-      case 3:
-        return <ScreenRemembrance onBack={prevScreen} onNext={nextScreen} />;
-      case 4:
-        return <ScreenRecitation onBack={prevScreen} onNext={nextScreen} />;
-      case 5:
-        return <ScreenMissedPrayers onBack={prevScreen} onNext={nextScreen} />;
-      case 6:
-        return <ScreenDailyIntentions onBack={prevScreen} onNext={nextScreen} />;
-      case 7:
-        return <ScreenJourneyBegins onBack={prevScreen} onFinish={finishJourney} />;
-      default:
-        return (
-          <SplashScreen
-            onStart={nextScreen}
-            onSkip={() => setCurrentScreen(7)}
-            onSignIn={() => setCurrentScreen(1)}
-          />
-        );
-    }
-  };
+  // Text is measured with whatever font is available at first paint. Rendering
+  // before the fonts are registered bakes fallback metrics into the layout and
+  // clips the glyphs that replace them.
+  if (!fontsLoaded && !fontError) {
+    return <View style={styles.boot} />;
+  }
 
   return (
-    <SafeAreaProvider>
-      <OnboardingProvider>
-        <StatusBar barStyle="dark-content" backgroundColor={Colors.bg} />
-        <View style={styles.outerContainer}>
-          <View style={styles.mobileFrame}>
-            {renderScreen()}
-
-            {/* Journey Completed Modal */}
-            <Modal
-              visible={journeyCompleted}
-              transparent
-              animationType="fade"
-              onRequestClose={() => setJourneyCompleted(false)}
+    <GestureHandlerRootView style={styles.root}>
+      <SafeAreaProvider>
+        <OnboardingProvider>
+          <StatusBar barStyle="dark-content" backgroundColor={Colors.bg} />
+          <View style={styles.outerContainer}>
+            <View
+              style={[
+                styles.mobileFrame,
+                frameSize,
+                showFrameChrome && styles.mobileFrameChrome,
+              ]}
             >
-              <View style={styles.modalOverlay}>
-                <View style={styles.modalCard}>
-                  <Text style={styles.modalSeal}>✦ ﷽ ✦</Text>
-                  <Text style={styles.modalTitle}>Māshā’Allāh!</Text>
-                  <Text style={styles.modalMessage}>
-                    Welcome to Momen Pro. Your sacred journey has begun. May your
-                    days be filled with barakah and presence in your worship.
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.modalButton}
-                    onPress={resetJourney}
-                  >
-                    <Text style={styles.modalButtonText}>Start Over / Explore</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
+              <Flow />
+            </View>
           </View>
-        </View>
-      </OnboardingProvider>
-    </SafeAreaProvider>
+        </OnboardingProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  boot: {
+    flex: 1,
+    backgroundColor: Colors.bg,
+  },
   outerContainer: {
     flex: 1,
     backgroundColor: Platform.OS === 'web' ? '#041A16' : Colors.bg,
     alignItems: 'center',
     justifyContent: 'center',
-    ...(Platform.OS === 'web' ? ({ minHeight: '100vh', width: '100vw' } as any) : {}),
+    ...(Platform.OS === 'web'
+      ? // dvh, not vh: on mobile browsers vh includes the area behind the
+        // address bar, which pushes the centred frame out of view again.
+        ({ minHeight: '100dvh', width: '100%' } as any)
+      : {}),
   },
   mobileFrame: {
-    width: Platform.OS === 'web' ? 390 : '100%',
-    maxWidth: 390,
-    height: Platform.OS === 'web' ? 884 : '100%',
-    maxHeight: Platform.OS === 'web' ? 884 : undefined,
+    width: '100%',
+    height: '100%',
     backgroundColor: Colors.bg,
     overflow: 'hidden',
     position: 'relative',
+  },
+  mobileFrameChrome: {
     ...(Platform.OS === 'web'
       ? ({
           borderRadius: 36,
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.45), 0 0 40px rgba(200, 168, 107, 0.15)',
+          boxShadow:
+            '0 20px 60px rgba(0, 0, 0, 0.45), 0 0 40px rgba(200, 168, 107, 0.15)',
           borderWidth: 1,
           borderColor: 'rgba(200, 168, 107, 0.3)',
         } as any)
       : {}),
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(4, 26, 22, 0.75)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  modalCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: Colors.goldLight,
-    padding: 28,
-    alignItems: 'center',
-    maxWidth: 340,
-    width: '100%',
-  },
-  modalSeal: {
-    color: Colors.gold,
-    fontSize: 18,
-    marginBottom: 10,
-    fontFamily: FontFamilies.amiriRegular,
-  },
-  modalTitle: {
-    fontFamily: FontFamilies.serifSemiBold,
-    fontSize: 28,
-    fontWeight: '600',
-    color: Colors.primary,
-    marginBottom: 10,
-  },
-  modalMessage: {
-    fontFamily: FontFamilies.sansRegular,
-    fontSize: 13,
-    lineHeight: 20,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  modalButton: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: Colors.goldBorder,
-  },
-  modalButtonText: {
-    color: '#FFFDF9',
-    fontSize: 13,
-    fontWeight: '600',
-    fontFamily: FontFamilies.sansSemiBold,
   },
 });

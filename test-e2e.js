@@ -1,133 +1,423 @@
+/**
+ * Browser pass for the Flow transitions.
+ *
+ * What this actually proves, per move:
+ *   - two Stage layers overlap (shared axis, not a swap)
+ *   - the Stage is never empty: peak layer opacity never dips to zero
+ *   - travel is direction-aware: forward exits left / enters from the right
+ *   - Chrome is anchored: the CTA and the progress bar never move by a pixel
+ *   - the exiting layer cannot receive pointer events
+ *   - the Flow lands on the destination and nowhere else
+ *   - rapid repeated taps advance exactly one Step
+ *
+ * Run with the dev server up:  node test-e2e.js
+ */
 const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 
-async function runTests() {
-  const screenshotsDir = path.join(__dirname, 'test-results', 'screenshots');
-  if (!fs.existsSync(screenshotsDir)) {
-    fs.mkdirSync(screenshotsDir, { recursive: true });
-  }
+const URL = process.env.APP_URL || 'http://localhost:8081';
+const SETTLE = 750;
+const DRIFT_TOLERANCE = 0.5;
+const MIN_PEAK_OPACITY = 0.25;
+const TRAVEL_TOLERANCE = 0.5;
 
-  console.log('🚀 Launching Playwright Chromium...');
-  const browser = await chromium.launch({ headless: true, channel: 'chrome' });
-  const context = await browser.newContext({
-    viewport: { width: 440, height: 900 },
-  });
-  const page = await context.newPage();
-
-  console.log('🌐 Navigating to Expo Web (http://localhost:8081)...');
-  await page.goto('http://localhost:8081', { waitUntil: 'networkidle', timeout: 60000 });
-
-  // Wait for initial render
-  await page.waitForTimeout(4000);
-
-  console.log('📸 Screen 0 (Splash): Capturing and validating...');
-  await page.screenshot({ path: path.join(screenshotsDir, '0-splash.png') });
-
-  // Check splash elements
-  const splashText = await page.textContent('body');
-  console.log('Splash contains Bismillah CTA?', splashText.includes('Begin with Bismillah'));
-
-  // Screen 0 -> Screen 1: Click "Begin with Bismillah"
-  console.log('👉 Clicking "Begin with Bismillah"...');
-  const beginBtn = page.getByTestId('splash-begin-button');
-  if (await beginBtn.isVisible()) {
-    await beginBtn.click();
-  } else {
-    // fallback click on text
-    await page.getByText('Begin with Bismillah').click();
-  }
-  await page.waitForTimeout(1500);
-
-  console.log('📸 Screen 1 (Prayers): Capturing and validating...');
-  await page.screenshot({ path: path.join(screenshotsDir, '1-prayers.png') });
-  let body1 = await page.textContent('body');
-  console.log('Screen 1 loaded?', body1.includes('PRAYERS') || body1.includes('prayer'));
-
-  const clickButton = async (testId, textFallback) => {
-    const btn = page.getByTestId(testId);
-    if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await btn.click();
-    } else {
-      await page.getByText(textFallback).first().click();
-    }
-  };
-
-  // Screen 1 -> Screen 2: Click Continue
-  console.log('👉 Navigating to Screen 2...');
-  await clickButton('prayers-continue-btn', 'Continue');
-  await page.waitForTimeout(1500);
-
-  console.log('📸 Screen 2 (Prayer Space): Capturing and validating...');
-  await page.screenshot({ path: path.join(screenshotsDir, '2-space.png') });
-  let body2 = await page.textContent('body');
-  console.log('Screen 2 loaded?', body2.includes('SPACE') || body2.includes('space') || body2.includes('Mosque'));
-
-  // Screen 2 -> Screen 3: Click Continue
-  console.log('👉 Navigating to Screen 3...');
-  await clickButton('prayerspace-continue-btn', 'Continue');
-  await page.waitForTimeout(1500);
-
-  console.log('📸 Screen 3 (Remembrance): Capturing and validating...');
-  await page.screenshot({ path: path.join(screenshotsDir, '3-remembrance.png') });
-  let body3 = await page.textContent('body');
-  console.log('Screen 3 loaded?', body3.includes('REMEMBRANCE') || body3.includes('remembrance') || body3.includes('azkar'));
-
-  // Screen 3 -> Screen 4: Click Continue
-  console.log('👉 Navigating to Screen 4...');
-  await clickButton('remembrance-continue-btn', 'Continue');
-  await page.waitForTimeout(1500);
-
-  console.log('📸 Screen 4 (Recitation): Capturing and validating...');
-  await page.screenshot({ path: path.join(screenshotsDir, '4-recitation.png') });
-  let body4 = await page.textContent('body');
-  console.log('Screen 4 loaded?', body4.includes('RECITATION') || body4.includes('recitation') || body4.includes('Ayahs'));
-
-  // Screen 4 -> Screen 5: Click Continue
-  console.log('👉 Navigating to Screen 5...');
-  await clickButton('recitation-continue-btn', 'Continue');
-  await page.waitForTimeout(1500);
-
-  console.log('📸 Screen 5 (Missed Prayers / Fresh Beginning): Capturing and validating...');
-  await page.screenshot({ path: path.join(screenshotsDir, '5-missed-prayers.png') });
-  let body5 = await page.textContent('body');
-  console.log('Screen 5 loaded?', body5.includes('BEGINNING') || body5.includes('missed') || body5.includes('Qaza'));
-
-  // Screen 5 -> Screen 6: Click Continue
-  console.log('👉 Navigating to Screen 6...');
-  await clickButton('missed-prayers-continue-btn', 'Continue');
-  await page.waitForTimeout(1500);
-
-  console.log('📸 Screen 6 (Daily Intentions): Capturing and validating...');
-  await page.screenshot({ path: path.join(screenshotsDir, '6-daily-intentions.png') });
-  let body6 = await page.textContent('body');
-  console.log('Screen 6 loaded?', body6.includes('INTENTIONS') || body6.includes('intentions') || body6.includes('Dhikr'));
-
-  // Screen 6 -> Screen 7: Click Save my goals
-  console.log('👉 Navigating to Screen 7...');
-  await clickButton('save-goals-btn', 'Save my goals');
-  await page.waitForTimeout(1500);
-
-  console.log('📸 Screen 7 (Journey Begins): Capturing and validating...');
-  await page.screenshot({ path: path.join(screenshotsDir, '7-journey-begins.png') });
-  let body7 = await page.textContent('body');
-  console.log('Screen 7 loaded?', body7.includes('intentions are set') || body7.includes('Begin my journey'));
-
-  // Screen 7 -> Finish Journey
-  console.log('👉 Clicking "Begin my journey"...');
-  await clickButton('journey-finish-button', 'Begin my journey');
-  await page.waitForTimeout(1000);
-
-  console.log('📸 Journey Completed Modal: Capturing...');
-  await page.screenshot({ path: path.join(screenshotsDir, '8-completed-modal.png') });
-  let body8 = await page.textContent('body');
-  console.log('Modal displayed?', body8.includes('Māshā’Allāh') || body8.includes('Welcome to Momen Pro'));
-
-  console.log('✅ ALL SCREENS TESTED AND VALIDATED SUCCESSFULLY!');
-  await browser.close();
+const results = [];
+function check(name, ok, detail) {
+  results.push({ name, ok: Boolean(ok), detail });
+  const mark = ok ? 'PASS' : 'FAIL';
+  console.log(`  ${mark}  ${name}${detail ? ` — ${detail}` : ''}`);
+  return Boolean(ok);
 }
 
-runTests().catch((err) => {
-  console.error('❌ Test failed:', err);
+/** Records one frame-by-frame trace of the Flow's Stage and Chrome. */
+async function startTrace(page) {
+  await page.evaluate(() => {
+    if (window.__flowTrace) window.__flowTrace.stop();
+    const samples = [];
+    let running = true;
+
+    const readX = (el) => {
+      const transform = window.getComputedStyle(el).transform;
+      if (!transform || transform === 'none') return 0;
+      const matrix = /matrix\(([^)]+)\)/.exec(transform);
+      if (!matrix) return 0;
+      return parseFloat(matrix[1].split(',')[4]);
+    };
+    const top = (testId) => {
+      const el = document.querySelector(`[data-testid="${testId}"]`);
+      return el ? Math.round(el.getBoundingClientRect().top * 100) / 100 : null;
+    };
+    const tick = () => {
+      if (!running) return;
+      const layers = Array.from(
+        document.querySelectorAll('[data-testid^="flow-step-"]')
+      );
+      // The shell fades as a whole on entry and exit; the Splash sits outside it.
+      const shellEl = document.querySelector('[data-testid="flow-shell"]');
+      const shellOpacity = shellEl
+        ? parseFloat(window.getComputedStyle(shellEl).opacity)
+        : 1;
+      samples.push({
+        t: performance.now(),
+        shellOpacity,
+        layers: layers.map((el) => {
+          const style = window.getComputedStyle(el);
+          const id = el.getAttribute('data-testid');
+          const own = parseFloat(style.opacity);
+          return {
+            id,
+            x: readX(el),
+            opacity: id === 'flow-step-0' ? own : own * shellOpacity,
+            pointerEvents: style.pointerEvents,
+          };
+        }),
+        ctaTop: top('flow-cta'),
+        progressTop: top('flow-progress'),
+      });
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    window.__flowTrace = {
+      samples,
+      stop: () => {
+        running = false;
+      },
+    };
+  });
+}
+
+async function readTrace(page) {
+  return page.evaluate(() => {
+    window.__flowTrace.stop();
+    return window.__flowTrace.samples;
+  });
+}
+
+async function stepAtRest(page) {
+  return page.evaluate(() => {
+    const layers = Array.from(
+      document.querySelectorAll('[data-testid^="flow-step-"]')
+    );
+    if (layers.length === 0) return 'none';
+    if (layers.length > 1) return `ambiguous(${layers.length})`;
+    return Number(layers[0].getAttribute('data-testid').replace('flow-step-', ''));
+  });
+}
+
+/**
+ * Opens the app and waits for the Splash's own control rather than for the
+ * network to go idle — a Metro dev build keeps a socket open and takes its time
+ * on a cold bundle.
+ */
+async function openApp(page) {
+  await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
+  await page
+    .getByTestId('splash-begin-button')
+    .waitFor({ state: 'visible', timeout: 120000 });
+  await page.waitForTimeout(2500);
+}
+
+async function forText(page, text) {
+  const body = await page.textContent('body');
+  return body.replace(/\s+/g, ' ').includes(text);
+}
+
+/**
+ * Clicks a control, waits for the Flow to land, and grades the trace.
+ *
+ * `from`/`to` are Step numbers, with 0 meaning the Splash surface.
+ * `expects` says who should travel: both surfaces (a Step-to-Step move), the
+ * outgoing one only (the Splash leaving), or the incoming one only (the Splash
+ * returning on Back from Step 1).
+ */
+async function moveAndGrade(
+  page,
+  { label, click, from, to, forward, expects = 'cross' }
+) {
+  await startTrace(page);
+  await click();
+  await page.waitForTimeout(SETTLE);
+  const samples = await readTrace(page);
+
+  const landing = await stepAtRest(page);
+  check(
+    `${label}: lands on ${to === 0 ? 'the splash' : `step ${to}`}`,
+    to === 0 ? landing === 'none' : landing === to,
+    `resting on ${landing === 'none' ? 'the splash' : landing}`
+  );
+
+  const moving = samples.filter((sample) => sample.layers.length === 2);
+  check(
+    `${label}: both layers coexist`,
+    moving.length >= 3,
+    `${moving.length} overlapping frames`
+  );
+
+  const ids = moving.length
+    ? moving[0].layers.map((layer) => layer.id).sort().join('+')
+    : 'none';
+  check(
+    `${label}: overlaps ${from} and ${to}`,
+    ids === [`flow-step-${from}`, `flow-step-${to}`].sort().join('+'),
+    ids
+  );
+
+  // Never a blank Stage: something is always substantially visible.
+  const blank = samples.filter(
+    (sample) =>
+      sample.layers.length > 0 &&
+      sample.layers.every((layer) => !(layer.opacity >= MIN_PEAK_OPACITY))
+  );
+  check(
+    `${label}: stage never empties`,
+    blank.length === 0,
+    `${blank.length} frames below ${MIN_PEAK_OPACITY} opacity`
+  );
+
+  // Direction: forward exits left and enters from the right; back reverses.
+  const exitingId = `flow-step-${from}`;
+  const enteringId = `flow-step-${to}`;
+  const directional = moving.filter((sample) => {
+    const out = sample.layers.find((layer) => layer.id === exitingId);
+    const inc = sample.layers.find((layer) => layer.id === enteringId);
+    if (!out || !inc) return false;
+    if (expects === 'exit') return out.x < -TRAVEL_TOLERANCE;
+    if (expects === 'enter') return inc.x < -TRAVEL_TOLERANCE;
+    return forward
+      ? out.x < -TRAVEL_TOLERANCE && inc.x > TRAVEL_TOLERANCE
+      : out.x > TRAVEL_TOLERANCE && inc.x < -TRAVEL_TOLERANCE;
+  });
+  const apex = moving.reduce(
+    (max, sample) =>
+      Math.max(
+        max,
+        ...sample.layers.map((layer) => Math.abs(layer.x))
+      ),
+    0
+  );
+  check(
+    `${label}: travels ${forward ? 'left' : 'right'}`,
+    directional.length >= 2,
+    `${directional.length} directional frames, apex ${apex.toFixed(1)}px`
+  );
+
+  // Chrome does not join the move.
+  const tops = samples
+    .map((sample) => [sample.ctaTop, sample.progressTop])
+    .filter(([cta, progress]) => cta !== null && progress !== null);
+  const ctaSpread = Math.max(...tops.map(([cta]) => cta)) -
+    Math.min(...tops.map(([cta]) => cta));
+  const progressSpread =
+    Math.max(...tops.map(([, progress]) => progress)) -
+    Math.min(...tops.map(([, progress]) => progress));
+  check(
+    `${label}: chrome anchored`,
+    tops.length > 0 &&
+      ctaSpread <= DRIFT_TOLERANCE &&
+      progressSpread <= DRIFT_TOLERANCE,
+    `cta drift ${ctaSpread.toFixed(2)}px, progress drift ${progressSpread.toFixed(2)}px`
+  );
+
+  // The Step on its way out must not swallow taps aimed at the new one.
+  const exitingFrames = moving
+    .map((sample) => sample.layers.find((layer) => layer.id === exitingId))
+    .filter(Boolean);
+  check(
+    `${label}: exiting layer inert`,
+    exitingFrames.length > 0 &&
+      exitingFrames.every((layer) => layer.pointerEvents === 'none'),
+    `${exitingFrames.filter((layer) => layer.pointerEvents === 'none').length}/${exitingFrames.length} frames`
+  );
+
+  return samples;
+}
+
+async function run() {
+  const shots = path.join(__dirname, 'test-results', 'screenshots');
+  fs.mkdirSync(shots, { recursive: true });
+
+  console.log(`Launching Chromium against ${URL}`);
+  const browser = await chromium.launch({ headless: true, channel: 'chrome' });
+  const context = await browser.newContext({ viewport: { width: 440, height: 900 } });
+  const page = await context.newPage();
+
+  const consoleErrors = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error') consoleErrors.push(message.text());
+  });
+  page.on('pageerror', (error) => consoleErrors.push(String(error)));
+
+  await openApp(page);
+
+  console.log('\nSplash');
+  await page.screenshot({ path: path.join(shots, '0-splash.png') });
+  check('splash: renders', await forText(page, 'Begin with Bismillah'));
+  check('splash: no flow step mounted', (await stepAtRest(page)) === 'none');
+
+  const STEPS = [
+    { id: 1, cta: 'prayers-continue-btn', title: 'PRAYERS' },
+    { id: 2, cta: 'darood-continue-btn', title: 'DAROOD O SALAM' },
+    { id: 3, cta: 'prayer-space-continue-btn', title: 'PRAYER SPACE' },
+    { id: 4, cta: 'remembrance-continue-btn', title: 'REMEMBRANCE' },
+    { id: 5, cta: 'recitation-continue-btn', title: 'RECITATION' },
+    { id: 6, cta: 'missed-prayers-continue-btn', title: 'A FRESH BEGINNING' },
+    { id: 7, cta: 'save-goals-btn', title: 'YOUR DAILY INTENTIONS' },
+    { id: 8, cta: 'journey-finish-button', title: 'YOUR JOURNEY BEGINS' },
+  ];
+
+  console.log('\nSplash -> step 1 (entry)');
+  await moveAndGrade(page, {
+    label: 'splash->1',
+    from: 0,
+    to: 1,
+    forward: true,
+    expects: 'exit',
+    click: () => page.getByTestId('splash-begin-button').click(),
+  });
+  check('1: title shown', await forText(page, 'PRAYERS'));
+  await page.screenshot({ path: path.join(shots, '1-prayers.png') });
+
+  for (let i = 0; i < STEPS.length - 1; i += 1) {
+    const current = STEPS[i];
+    const next = STEPS[i + 1];
+    console.log(`\nStep ${current.id} -> ${next.id}`);
+    await moveAndGrade(page, {
+      label: `${current.id}->${next.id}`,
+      from: current.id,
+      to: next.id,
+      forward: true,
+      click: () => page.getByTestId(current.cta).click(),
+    });
+    check(`${next.id}: title shown`, await forText(page, next.title));
+    await page.screenshot({
+      path: path.join(shots, `${next.id}-${next.title.toLowerCase().replace(/\s+/g, '-')}.png`),
+    });
+  }
+
+  console.log('\nBack: step 8 -> 7 (reverse)');
+  await moveAndGrade(page, {
+    label: '8->7 back',
+    from: 8,
+    to: 7,
+    forward: false,
+    click: () => page.getByTestId('header-back-button').click(),
+  });
+
+  console.log('\nDrag back: step 7 -> 6 (finger-tracked)');
+  const stageBox = await page.getByTestId('flow-stage').boundingBox();
+  const dragY = stageBox.y + stageBox.height / 2;
+  const dragX = stageBox.x + 30;
+  await startTrace(page);
+  await page.mouse.move(dragX, dragY);
+  await page.mouse.down();
+  for (let i = 1; i <= 12; i += 1) {
+    await page.mouse.move(dragX + i * 20, dragY);
+    await page.waitForTimeout(8);
+  }
+  const dragTrace = await page.evaluate(() => window.__flowTrace.samples.slice());
+  await page.mouse.up();
+  await page.waitForTimeout(SETTLE);
+  const afterDrag = await stepAtRest(page);
+  const dragReveal = dragTrace.reduce(
+    (max, sample) =>
+      Math.max(max, ...sample.layers.map((layer) => Math.abs(layer.x))),
+    0
+  );
+  check('drag: tracks the finger', dragReveal > 30, `revealed ${dragReveal.toFixed(0)}px`);
+  check('drag: commits to step 6', afterDrag === 6, `resting on ${afterDrag}`);
+
+  console.log('\nRapid taps must not double-advance');
+  const backToSeven = await page.getByTestId('missed-prayers-continue-btn').isVisible().catch(() => false);
+  if (backToSeven) {
+    const ctaBox = await page.getByTestId('flow-cta').boundingBox();
+    const tapX = ctaBox.x + ctaBox.width / 2;
+    const tapY = ctaBox.y + ctaBox.height / 2;
+    await page.mouse.click(tapX, tapY);
+    await page.mouse.click(tapX, tapY);
+    await page.mouse.click(tapX, tapY);
+    await page.waitForTimeout(SETTLE);
+    const landed = await stepAtRest(page);
+    check('rapid taps: advance exactly one step', landed === 7, `resting on ${landed}`);
+  } else {
+    check('rapid taps: harness reached step 6', false, 'CTA not found');
+  }
+
+  console.log('\nBack from step 1 returns to the Splash');
+  await openApp(page);
+  await page.getByTestId('splash-begin-button').click();
+  await page.waitForTimeout(SETTLE);
+  await moveAndGrade(page, {
+    label: '1->splash back',
+    from: 1,
+    to: 0,
+    forward: false,
+    expects: 'enter',
+    click: () => page.getByTestId('header-back-button').click(),
+  });
+  check('1->splash: splash is back', await forText(page, 'Begin with Bismillah'));
+
+  console.log('\nSkip from the Splash lands on the Arrival');
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page
+    .getByTestId('splash-begin-button')
+    .waitFor({ state: 'visible', timeout: 120000 });
+  await page.waitForTimeout(1500);
+  await page.getByTestId('splash-skip-button').click();
+  await page.waitForTimeout(SETTLE);
+  const skipped = await stepAtRest(page);
+  check('skip: lands on Arrival (8)', skipped === 8, `resting on ${skipped}`);
+
+  console.log('\nCompletion modal');
+  await page.getByTestId('journey-finish-button').click();
+  await page.waitForTimeout(600);
+  check('modal: opens', await forText(page, 'Māshā’Allāh'));
+  await page.screenshot({ path: path.join(shots, '9-completed-modal.png') });
+
+  console.log('\nReduced motion');
+  const reducedContext = await browser.newContext({
+    viewport: { width: 440, height: 900 },
+    reducedMotion: 'reduce',
+  });
+  const reducedPage = await reducedContext.newPage();
+  await openApp(reducedPage);
+  await startTrace(reducedPage);
+  await reducedPage.getByTestId('splash-begin-button').click();
+  await reducedPage.waitForTimeout(SETTLE);
+  await reducedPage.getByTestId('prayers-continue-btn').click();
+  await reducedPage.waitForTimeout(SETTLE);
+  const reducedSamples = await readTrace(reducedPage);
+  const reducedSteps = await stepAtRest(reducedPage);
+  const reducedTravel = reducedSamples.reduce(
+    (max, sample) => Math.max(max, ...sample.layers.map((layer) => Math.abs(layer.x))),
+    0
+  );
+  check('reduced motion: still navigates', reducedSteps === 2, `resting on ${reducedSteps}`);
+  check(
+    'reduced motion: no lateral travel',
+    reducedTravel <= TRAVEL_TOLERANCE,
+    `max ${reducedTravel.toFixed(2)}px`
+  );
+  await reducedContext.close();
+
+  check(
+    'no console errors',
+    consoleErrors.length === 0,
+    consoleErrors.slice(0, 3).join(' | ') || 'clean'
+  );
+
+  await browser.close();
+
+  const failed = results.filter((result) => !result.ok);
+  console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
+  if (failed.length > 0) {
+    console.log('\nFailures:');
+    for (const failure of failed) console.log(`  - ${failure.name}: ${failure.detail}`);
+    process.exit(1);
+  }
+}
+
+run().catch((error) => {
+  console.error('Test run crashed:', error);
   process.exit(1);
 });
