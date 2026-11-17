@@ -11,12 +11,13 @@ import { DURATION, EASE } from './motion';
 
 interface CompletionModalProps {
   visible: boolean;
-  onReset: () => void;
+  /** The Flow is over: this is the only way out of it, and it leads to Home. */
+  onEnter: () => void;
 }
 
 export const CompletionModal: React.FC<CompletionModalProps> = ({
   visible,
-  onReset,
+  onEnter,
 }) => {
   const p = useSharedValue(0);
 
@@ -37,7 +38,7 @@ export const CompletionModal: React.FC<CompletionModalProps> = ({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onReset}
+      onRequestClose={onEnter}
     >
       <View style={styles.overlay}>
         <Animated.View style={[styles.card, card]}>
@@ -49,10 +50,10 @@ export const CompletionModal: React.FC<CompletionModalProps> = ({
           </Text>
           <TouchableOpacity
             style={styles.button}
-            onPress={onReset}
-            testID="completion-reset-button"
+            onPress={onEnter}
+            testID="completion-enter-button"
           >
-            <Text style={styles.buttonText}>Start Over / Explore</Text>
+            <Text style={styles.buttonText}>Enter Momen Pro</Text>
           </TouchableOpacity>
         </Animated.View>
       </View>

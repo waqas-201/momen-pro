@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
+  Extrapolation,
+  interpolate,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -13,27 +15,32 @@ import { StageLayer } from './StageLayer';
 import { CompletionModal } from './CompletionModal';
 import {
   DRAG_COMMIT,
-  DRAG_REVEAL,
   DURATION,
   EASE,
+  FADE,
   useMotion,
   type MoveMode,
 } from './motion';
+import { useStepGate } from './StepGate';
 import type { Flight } from './types';
 import { ARRIVAL, SPLASH, STAGES, metaFor } from '../steps';
 
-/** The Splash is a full surface, not Stage content, so it travels further. */
-const SPLASH_TRAVEL = 72;
-
 type LayerRole = 'rest' | 'entering' | 'exiting';
 
-export const Flow: React.FC = () => {
-  const { reduced, travel, durationFor } = useMotion();
+interface FlowProps {
+  /** Leaves the Flow for Home. There is no surface of its own after the Arrival. */
+  onFinish: () => void;
+}
+
+export const Flow: React.FC<FlowProps> = ({ onFinish }) => {
+  // The Stage's own width is the measure every move is expressed against.
+  const [width, setWidth] = useState(0);
+  const { reduced, travel, reveal, durationFor } = useMotion(width);
+  const gate = useStepGate();
 
   const [step, setStep] = useState(SPLASH);
   const [flight, setFlight] = useState<Flight | null>(null);
   const [showCompletion, setShowCompletion] = useState(false);
-  const [reveal, setReveal] = useState(DRAG_REVEAL.min);
 
   const t = useSharedValue(0);
   const busy = useSharedValue(false);
@@ -142,13 +149,11 @@ export const Flow: React.FC = () => {
       setShowCompletion(true);
       return;
     }
+    // A Step can refuse Forward, and only Forward: the Stage stays exactly
+    // where it is while the Step explains itself.
+    if (flight || !gate.canContinue(step)) return;
     go(step + 1);
-  }, [step, go]);
-
-  const reset = useCallback(() => {
-    setShowCompletion(false);
-    go(SPLASH);
-  }, [go]);
+  }, [step, go, gate, flight]);
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
@@ -229,14 +234,11 @@ export const Flow: React.FC = () => {
       ? metaFor(flight.from)
       : null;
 
-  const shellStyle = useAnimatedStyle(() => {
-    if (!flight) return { opacity: 1 };
-    if (flight.from !== SPLASH && flight.to !== SPLASH) return { opacity: 1 };
-    return { opacity: flight.to !== SPLASH ? t.value : 1 - t.value };
-  }, [flight]);
-
-  const splashTravel = reduced ? 0 : SPLASH_TRAVEL;
-
+  /**
+   * The Splash is the first panel on the same track, not a separate surface: it
+   * travels the same distance and fades on the same windows as any other Step,
+   * so entering the Flow feels like the first step of the stepper.
+   */
   const splashStyle = useAnimatedStyle(() => {
     if (!flight) return { opacity: 1, transform: [{ translateX: 0 }] };
     if (flight.from !== SPLASH && flight.to !== SPLASH) {
@@ -244,24 +246,24 @@ export const Flow: React.FC = () => {
     }
     const exiting = flight.from === SPLASH;
     const p = t.value;
+    const opacity = exiting
+      ? interpolate(p, FADE.out, [1, 0], Extrapolation.CLAMP)
+      : interpolate(p, FADE.in, [0, 1], Extrapolation.CLAMP);
     return {
-      opacity: exiting ? 1 - p : p,
+      opacity,
       transform: [
-        { translateX: exiting ? -splashTravel * p : -splashTravel * (1 - p) },
+        {
+          translateX: exiting
+            ? -flight.dir * flight.travel * p
+            : flight.dir * flight.travel * (1 - p),
+        },
       ],
     };
-  }, [flight, splashTravel]);
+  }, [flight]);
 
   const splashVisible =
     step === SPLASH ||
     (flight !== null && (flight.from === SPLASH || flight.to === SPLASH));
-
-  /**
-   * Entry and exit cross the Splash, and the shell carries that fade as a whole.
-   * The Stage must not fade a second time on top of it.
-   */
-  const crossesSplash =
-    flight !== null && (flight.from === SPLASH || flight.to === SPLASH);
 
   const layers: { index: number; role: LayerRole }[] = [];
   if (!flight) {
@@ -280,16 +282,12 @@ export const Flow: React.FC = () => {
       <View
         style={styles.root}
         onLayout={(event) => {
-          const width = event.nativeEvent.layout.width;
-          const next = Math.min(
-            DRAG_REVEAL.max,
-            Math.max(DRAG_REVEAL.min, width * DRAG_REVEAL.ratio)
-          );
-          if (Math.abs(next - reveal) > 1) setReveal(next);
+          const next = event.nativeEvent.layout.width;
+          if (Math.abs(next - width) > 1) setWidth(next);
         }}
       >
         {step !== SPLASH || flight ? (
-          <Animated.View style={[styles.shell, shellStyle]} testID="flow-shell">
+          <Animated.View style={styles.shell} testID="flow-shell">
             <Chrome
               meta={chromeMeta}
               prevMeta={prevMeta}
@@ -311,7 +309,6 @@ export const Flow: React.FC = () => {
                     flight={flight}
                     t={t}
                     reduced={reduced}
-                    fade={!crossesSplash}
                   >
                     <Stage />
                   </StageLayer>
@@ -339,7 +336,7 @@ export const Flow: React.FC = () => {
           </Animated.View>
         ) : null}
 
-        <CompletionModal visible={showCompletion} onReset={reset} />
+        <CompletionModal visible={showCompletion} onEnter={onFinish} />
       </View>
     </GestureDetector>
   );

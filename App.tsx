@@ -22,7 +22,8 @@ import {
 } from '@expo-google-fonts/cormorant-garamond';
 import { Amiri_400Regular, Amiri_700Bold } from '@expo-google-fonts/amiri';
 import { OnboardingProvider } from './src/context/OnboardingContext';
-import { Flow } from './src/flow/Flow';
+import { AppShell } from './src/shell/AppShell';
+import { StepGateProvider } from './src/flow/StepGate';
 import { Colors } from './src/theme/colors';
 
 /** The design reference the screens were drawn against. Not a screen size. */
@@ -86,18 +87,20 @@ export default function App() {
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <OnboardingProvider>
-          <StatusBar barStyle="dark-content" backgroundColor={Colors.bg} />
-          <View style={styles.outerContainer}>
-            <View
-              style={[
-                styles.mobileFrame,
-                frameSize,
-                showFrameChrome && styles.mobileFrameChrome,
-              ]}
-            >
-              <Flow />
+          <StepGateProvider>
+            <StatusBar barStyle="light-content" backgroundColor={Colors.darkBg} />
+            <View style={styles.outerContainer}>
+              <View
+                style={[
+                  styles.mobileFrame,
+                  frameSize,
+                  showFrameChrome && styles.mobileFrameChrome,
+                ]}
+              >
+                <AppShell />
+              </View>
             </View>
-          </View>
+          </StepGateProvider>
         </OnboardingProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

@@ -17,11 +17,6 @@ interface StageLayerProps {
   flight: Flight | null;
   t: SharedValue<number>;
   reduced: boolean;
-  /**
-   * False when the shell itself is fading (entry from and exit to the Splash).
-   * Fading twice would make the Stage lag behind its own Chrome.
-   */
-  fade?: boolean;
   children: React.ReactNode;
 }
 
@@ -36,7 +31,6 @@ export const StageLayer: React.FC<StageLayerProps> = ({
   flight,
   t,
   reduced,
-  fade = true,
   children,
 }) => {
   const dir = flight?.dir ?? 1;
@@ -55,13 +49,10 @@ export const StageLayer: React.FC<StageLayerProps> = ({
     const outWindow = interactive ? [0, 0.8] : FADE.out;
     const inWindow = interactive ? [0, 1] : FADE.in;
 
-    let opacity = 1;
-    if (fade) {
-      opacity =
-        role === 'exiting'
-          ? interpolate(p, outWindow, [1, 0], Extrapolation.CLAMP)
-          : interpolate(p, inWindow, [0, 1], Extrapolation.CLAMP);
-    }
+    const opacity =
+      role === 'exiting'
+        ? interpolate(p, outWindow, [1, 0], Extrapolation.CLAMP)
+        : interpolate(p, inWindow, [0, 1], Extrapolation.CLAMP);
 
     return {
       opacity,
@@ -80,7 +71,7 @@ export const StageLayer: React.FC<StageLayerProps> = ({
         },
       ],
     };
-  }, [role, dir, travel, mode, interactive, reduced, fade]);
+  }, [role, dir, travel, mode, interactive, reduced]);
 
   return (
     <Animated.View

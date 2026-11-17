@@ -1,6 +1,6 @@
-# Momen Pro — Onboarding Context
+# Momen Pro — Domain Language
 
-The first-run experience: a person arrives at the Splash, is walked through a short sequence of questions about their worship, and lands on an arrival screen confirming the intentions they set. A person may move backward at any point.
+The first-run experience: a person arrives at the Splash, is walked through a short sequence of questions about their worship, and lands on an arrival screen confirming the intentions they set. A person may move backward at any point. From there Home is where those intentions are lived, one Day at a time.
 
 ## Language
 
@@ -29,6 +29,30 @@ The screen shown before the Flow begins. It is not a Step and owns no progress-b
 
 **Arrival**:
 The screen reached after the final Step, where the answers given across the Flow are confirmed. It is not a Step; the progress bar reads as complete rather than counting toward it.
+
+**Home**:
+The surface a person lands on once the Flow is finished. Home is where a Day is lived: it shows every Intention set during the Flow and whether it has been kept today.
+_Avoid_: Dashboard, main screen
+
+**Intention**:
+One thing a person committed to doing each Day — Prayer, Darood, Dhikr, Qur’an, or Qadha. An Intention owns one Target and is either kept or not kept for a given Day.
+_Avoid_: Goal, habit, task
+
+**Target**:
+The amount an Intention asks for in one Day: a floor for Prayer (any N of the five named prayers), a count for Darood, Qur’an and Qadha, and the chosen routines for Dhikr. An Intention without a real Target is not an Intention Home can hold, so it does not appear there.
+_Avoid_: Limit, quota, aim
+
+**Check-in**:
+One recorded act against an Intention for the current Day — a named prayer marked offered, a count added, a routine ticked off. A Check-in belongs to exactly one Day.
+_Avoid_: Log, entry, mark
+
+**Day**:
+The unit a Check-in belongs to. A Day begins at local midnight; there is no prayer-time rollover yet, and no Check-in is kept beyond its own Day.
+_Avoid_: Today, date, session
+
+**Tab Bar**:
+The anchored navigation at the bottom of the app once the Flow is done: Home, plus the sections that are still placeholders. It is not part of the Flow's Chrome.
+_Avoid_: Bottom nav, menu
 
 **Forward / Back**:
 The two directions of travel through the Flow. Direction is meaningful — it is what distinguishes resuming the Flow from retracing it.

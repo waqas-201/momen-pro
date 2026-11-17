@@ -30,6 +30,25 @@ export const Colors = {
   success: '#125246',
   successLight: '#EAF0EA',
 
+  // Dark Theme (Home & immersive surfaces)
+  darkBg: '#051410',
+  darkSurface: '#0A2019',
+  darkCard: '#0C271F',
+  darkCardElevated: '#11352A',
+  darkBorder: '#163E32',
+  darkBorderSubtle: '#112E25',
+  darkBorderGold: 'rgba(212, 175, 55, 0.35)',
+  darkTextPrimary: '#FBF9F5',
+  darkTextSecondary: '#94A8A0',
+  darkTextMuted: '#637A71',
+  darkGold: '#D4AF37',
+  darkGoldLight: 'rgba(212, 175, 55, 0.18)',
+  darkGoldGlow: 'rgba(212, 175, 55, 0.45)',
+  darkSuccess: '#22C55E',
+  darkSuccessBg: 'rgba(34, 197, 94, 0.14)',
+  darkSuccessBorder: 'rgba(34, 197, 94, 0.45)',
+  darkPastDimmed: 'rgba(12, 39, 31, 0.45)',
+
   // Convenience aliases
   sandLight: '#FAF9F6',
   cardBg: '#FFFDF9',

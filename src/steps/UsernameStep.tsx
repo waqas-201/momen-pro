@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -14,18 +14,78 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { Controller, useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { User } from 'lucide-react-native';
 import { FontFamilies } from '../theme/typography';
 import { QuranicReflection } from '../components/QuranicReflection';
 import { StageBeat } from '../flow/StageBeat';
 import { useOnboarding } from '../context/OnboardingContext';
 import { EASE } from '../flow/motion';
+import { useStepGuard } from '../flow/StepGate';
+import {
+  NAME_MAX_LENGTH,
+  USERNAME_STEP,
+  userNameSchema,
+  type UserNameForm,
+} from './userNameForm';
+
+/** The one warm red in the palette, used only to mark a refused field. */
+const INVALID = '#B4462F';
 
 export const UsernameStep: React.FC = () => {
   const { userName, setUserName } = useOnboarding();
-  const inputRef = useRef<TextInput>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  const { control, getValues, setError, clearErrors, setFocus } =
+    useForm<UserNameForm>({
+      resolver: zodResolver(userNameSchema),
+      // Nothing is scolded while it is still being typed: the first judgement
+      // waits for the field to be left, after that it keeps up keystroke by
+      // keystroke so a corrected name clears its own error.
+      mode: 'onTouched',
+      reValidateMode: 'onChange',
+      defaultValues: { name: userName },
+    });
+
+  const typedName = useWatch({ control, name: 'name' });
+
+  // A name that has been typed but not confirmed is never thrown away: leaving
+  // the Step and coming back finds it exactly where it was left.
+  useEffect(() => {
+    setUserName(typedName ?? '');
+  }, [typedName, setUserName]);
+
+  /**
+   * The Flow's CTA asks this before it moves. Refusing is only half of it — the
+   * Step has to say why, so the field is marked, the message is placed under
+   * the input and the cursor goes back where the fix is.
+   */
+  const canContinue = useCallback(() => {
+    const value = getValues('name');
+    const result = userNameSchema.safeParse({ name: value });
+
+    if (result.success) {
+      clearErrors('name');
+      // Only a validated name is handed on, and always without stray spaces.
+      setUserName(value.trim());
+      return true;
+    }
+
+    setError(
+      'name',
+      {
+        type: 'validation',
+        message:
+          result.error.issues[0]?.message ?? 'Please tell us your name.',
+      },
+      { shouldFocus: true }
+    );
+    return false;
+  }, [clearErrors, getValues, setError, setUserName]);
+
+  useStepGuard(USERNAME_STEP, { canContinue });
 
   useEffect(() => {
     const showSub = Keyboard.addListener(
@@ -62,7 +122,7 @@ export const UsernameStep: React.FC = () => {
   }));
 
   const handleCardPress = () => {
-    inputRef.current?.focus();
+    setFocus('name');
   };
 
   return (
@@ -88,45 +148,79 @@ export const UsernameStep: React.FC = () => {
           </View>
 
           <StageBeat style={styles.entrySection}>
-            <Pressable
-              style={[
-                styles.inputCard,
-                isFocused ? styles.inputCardFocused : styles.inputCardBlurred,
-              ]}
-              onPress={handleCardPress}
-              accessible={false}
-            >
-              <View style={styles.iconContainer} pointerEvents="none">
-                <User
-                  size={18}
-                  color={isFocused ? '#083B32' : '#78716C'}
-                  strokeWidth={2.2}
-                />
-              </View>
-              <TextInput
-                ref={inputRef}
-                style={styles.textInput}
-                value={userName}
-                onChangeText={setUserName}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                placeholder="Enter your name"
-                placeholderTextColor="#A8A29E"
-                autoCapitalize="words"
-                autoCorrect={false}
-                maxLength={32}
-                selectionColor="#083B32"
-                cursorColor="#083B32"
-                returnKeyType="done"
-                testID="username-input"
-              />
-            </Pressable>
+            <Controller
+              control={control}
+              name="name"
+              render={({ field, fieldState }) => (
+                <>
+                  <Pressable
+                    style={[
+                      styles.inputCard,
+                      isFocused
+                        ? styles.inputCardFocused
+                        : styles.inputCardBlurred,
+                      fieldState.error ? styles.inputCardInvalid : null,
+                    ]}
+                    onPress={handleCardPress}
+                    accessible={false}
+                  >
+                    <View style={styles.iconContainer} pointerEvents="none">
+                      <User
+                        size={18}
+                        color={
+                          fieldState.error
+                            ? INVALID
+                            : isFocused
+                            ? '#083B32'
+                            : '#78716C'
+                        }
+                        strokeWidth={2.2}
+                      />
+                    </View>
+                    <TextInput
+                      ref={field.ref}
+                      style={styles.textInput}
+                      value={field.value}
+                      onChangeText={field.onChange}
+                      onFocus={() => setIsFocused(true)}
+                      onBlur={() => {
+                        setIsFocused(false);
+                        field.onBlur();
+                      }}
+                      placeholder="Enter your name"
+                      placeholderTextColor="#A8A29E"
+                      autoCapitalize="words"
+                      autoCorrect={false}
+                      maxLength={NAME_MAX_LENGTH}
+                      selectionColor="#083B32"
+                      cursorColor="#083B32"
+                      returnKeyType="done"
+                      testID="username-input"
+                    />
+                  </Pressable>
 
-            <View style={styles.guidanceBanner}>
-              <Text style={styles.bannerText}>
-                You can always update this anytime in your profile settings.
-              </Text>
-            </View>
+                  {/* One slot, two tones: the hint becomes the refusal, so the
+                      Step never jumps while the user is reading it. */}
+                  {fieldState.error ? (
+                    <View
+                      style={styles.errorBanner}
+                      accessibilityLiveRegion="polite"
+                    >
+                      <Text style={styles.errorText} testID="username-error">
+                        {fieldState.error.message}
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={styles.guidanceBanner}>
+                      <Text style={styles.bannerText}>
+                        You can always update this anytime in your profile
+                        settings.
+                      </Text>
+                    </View>
+                  )}
+                </>
+              )}
+            />
           </StageBeat>
         </Animated.View>
       </View>
@@ -193,6 +287,11 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#C8A86B',
   },
+  inputCardInvalid: {
+    backgroundColor: '#FDF6F3',
+    borderWidth: 1.5,
+    borderColor: INVALID,
+  },
   iconContainer: {
     width: 24,
     alignItems: 'center',
@@ -223,6 +322,23 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     lineHeight: 16,
     color: '#083B32',
+    textAlign: 'center',
+  },
+  errorBanner: {
+    backgroundColor: 'rgba(180, 70, 47, 0.08)',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(180, 70, 47, 0.35)',
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    width: '100%',
+  },
+  errorText: {
+    fontFamily: FontFamilies.sansMedium,
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: '#8E3524',
     textAlign: 'center',
   },
 });

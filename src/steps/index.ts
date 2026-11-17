@@ -6,6 +6,7 @@ import { RemembranceStep } from './RemembranceStep';
 import { RecitationStep } from './RecitationStep';
 import { MissedPrayersStep } from './MissedPrayersStep';
 import { UsernameStep } from './UsernameStep';
+import { USERNAME_STEP } from './userNameForm';
 import { DailyIntentionsStep } from './DailyIntentionsStep';
 import { ArrivalStep } from './ArrivalStep';
 
@@ -28,7 +29,7 @@ export const STAGES: Record<number, StageComponent> = {
   4: RemembranceStep,
   5: RecitationStep,
   6: MissedPrayersStep,
-  7: UsernameStep,
+  [USERNAME_STEP]: UsernameStep,
   8: DailyIntentionsStep,
   9: ArrivalStep,
 };
@@ -64,7 +65,7 @@ export const META: Record<number, StepMeta> = {
     countLabel: `6 of ${TOTAL_STEPS}`,
     cta: { label: 'Continue', testID: 'missed-prayers-continue-btn' },
   },
-  7: {
+  [USERNAME_STEP]: {
     title: 'Your Name',
     countLabel: `7 of ${TOTAL_STEPS}`,
     cta: { label: 'Continue', testID: 'username-continue-btn' },

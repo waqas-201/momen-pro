@@ -19,11 +19,47 @@ const MIME_TYPES = {
   '.ttf': 'font/ttf',
 };
 
-const server = http.createServer((req, res) => {
-  let reqPath = req.url.split('?')[0];
-  if (reqPath === '/') reqPath = '/index.html';
+/**
+ * Resolves a request path to a file inside DIST_DIR, or null if the path would
+ * escape the served directory. `path.join` alone is not enough: a URL such as
+ * `/../../etc/passwd` is normalised by the join and lands outside DIST_DIR.
+ */
+function resolveInsideDist(reqPath) {
+  let decoded;
+  try {
+    decoded = decodeURIComponent(reqPath);
+  } catch {
+    // Malformed percent-encoding: treat as not found rather than crashing.
+    return null;
+  }
+  // A NUL byte truncates the path in some syscalls; refuse it outright.
+  if (decoded.includes('\0')) return null;
 
-  let filePath = path.join(DIST_DIR, reqPath);
+  const candidate = path.resolve(DIST_DIR, '.' + path.posix.normalize(decoded));
+  const root = path.resolve(DIST_DIR) + path.sep;
+  if (candidate !== path.resolve(DIST_DIR) && !candidate.startsWith(root)) {
+    return null;
+  }
+  return candidate;
+}
+
+const server = http.createServer((req, res) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    res.writeHead(405, { Allow: 'GET, HEAD' });
+    res.end('Method Not Allowed');
+    return;
+  }
+
+  const reqPath = req.url.split('?')[0].split('#')[0] || '/';
+  const resolved = resolveInsideDist(reqPath === '/' ? '/index.html' : reqPath);
+
+  if (!resolved) {
+    res.writeHead(400);
+    res.end('Bad Request');
+    return;
+  }
+
+  let filePath = resolved;
 
   // If path doesn't exist, fall back to index.html (SPA routing)
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
@@ -41,6 +77,7 @@ const server = http.createServer((req, res) => {
     }
     res.writeHead(200, {
       'Content-Type': contentType,
+      'X-Content-Type-Options': 'nosniff',
       'Access-Control-Allow-Origin': '*',
     });
     res.end(content);
