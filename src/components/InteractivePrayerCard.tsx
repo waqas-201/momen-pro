@@ -14,6 +14,7 @@ import {
   type PrayerItemState,
   type PrayerSchedule,
 } from '../checkins/prayerTimes';
+import { useOnboarding } from '../context/OnboardingContext';
 import { CelestialSkyline } from './CelestialSkyline';
 import { PrayerHoldModal } from './PrayerHoldModal';
 import type { PrayerName } from '../checkins/types';
@@ -40,6 +41,7 @@ export const InteractivePrayerCard: React.FC<InteractivePrayerCardProps> = ({
   offeredPrayers,
   onTogglePrayer,
 }) => {
+  const { coordinates, fiqh } = useOnboarding();
   const [now, setNow] = useState(() => new Date());
   const [selectedPrayer, setSelectedPrayer] = useState<PrayerSchedule | null>(
     null
@@ -53,7 +55,12 @@ export const InteractivePrayerCard: React.FC<InteractivePrayerCardProps> = ({
     return () => clearInterval(timer);
   }, []);
 
-  const prayerStates: PrayerItemState[] = getPrayerStates(offeredPrayers, now);
+  const prayerStates: PrayerItemState[] = getPrayerStates(
+    offeredPrayers,
+    now,
+    coordinates,
+    fiqh
+  );
 
   // Identify the currently active, upcoming, or fallback prayer
   const activeItem =

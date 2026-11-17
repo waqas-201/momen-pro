@@ -9,7 +9,10 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.waqas.momenpro"
+      "bundleIdentifier": "com.waqas.momenpro",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Momen Pro requires your location to calculate accurate daily prayer times and solar positions for your area."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,14 +22,36 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "com.waqas.momenpro",
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "POST_NOTIFICATIONS",
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Momen Pro uses your location while using the app to calculate accurate daily prayer times (Fajr, Dhuhr, Asr, Maghrib, and Isha) based on your coordinates."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#083B32"
+        }
+      ],
+      "expo-secure-store",
+      "expo-build-properties"
     ],
     "extra": {
       "eas": {

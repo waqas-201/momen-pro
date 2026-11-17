@@ -264,7 +264,8 @@ async function run() {
     { id: 6, cta: 'missed-prayers-continue-btn', title: 'A FRESH BEGINNING' },
     { id: 7, cta: 'username-continue-btn', title: 'YOUR NAME' },
     { id: 8, cta: 'save-goals-btn', title: 'YOUR DAILY INTENTIONS' },
-    { id: 9, cta: 'journey-finish-button', title: 'YOUR JOURNEY BEGINS' },
+    { id: 9, cta: 'prayer-settings-continue-btn', title: 'YOUR TRADITION & HORIZON' },
+    { id: 10, cta: 'journey-finish-button', title: 'YOUR JOURNEY BEGINS' },
   ];
 
   console.log('\nSplash -> step 1 (entry)');
@@ -295,6 +296,15 @@ async function run() {
       path: path.join(shots, `${next.id}-${next.title.toLowerCase().replace(/\s+/g, '-')}.png`),
     });
   }
+
+  console.log('\nBack: step 10 -> 9 (reverse)');
+  await moveAndGrade(page, {
+    label: '10->9 back',
+    from: 10,
+    to: 9,
+    forward: false,
+    click: () => page.getByTestId('header-back-button').click(),
+  });
 
   console.log('\nBack: step 9 -> 8 (reverse)');
   await moveAndGrade(page, {

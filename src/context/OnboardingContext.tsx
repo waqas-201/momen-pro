@@ -16,6 +16,9 @@ export interface OnboardingState {
   targetDhikr: number;
   targetRecitation: number;
   targetQadha: number;
+  fiqh: 'hanafi' | 'shafii' | 'maliki' | 'hanbali';
+  locationName: string;
+  coordinates: { latitude: number; longitude: number } | null;
   
   setUserName: (val: string) => void;
   setDailyPrayersCount: (val: string) => void;
@@ -32,6 +35,9 @@ export interface OnboardingState {
   setTargetDhikr: (val: number | ((prev: number) => number)) => void;
   setTargetRecitation: (val: number | ((prev: number) => number)) => void;
   setTargetQadha: (val: number | ((prev: number) => number)) => void;
+  setFiqh: (val: 'hanafi' | 'shafii' | 'maliki' | 'hanbali') => void;
+  setLocationName: (val: string) => void;
+  setCoordinates: (val: { latitude: number; longitude: number } | null) => void;
 }
 
 const OnboardingContext = createContext<OnboardingState | null>(null);
@@ -52,6 +58,9 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [targetDhikr, setTargetDhikr] = useState<number>(100);
   const [targetRecitation, setTargetRecitation] = useState<number>(10);
   const [targetQadha, setTargetQadha] = useState<number>(0);
+  const [fiqh, setFiqh] = useState<'hanafi' | 'shafii' | 'maliki' | 'hanbali'>('hanafi');
+  const [locationName, setLocationName] = useState<string>('');
+  const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
 
   const toggleAdhkarRoutine = (routine: string) => {
     if (routine === 'No current routine') {
@@ -102,6 +111,12 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setTargetRecitation,
         targetQadha,
         setTargetQadha,
+        fiqh,
+        setFiqh,
+        locationName,
+        setLocationName,
+        coordinates,
+        setCoordinates,
       }}
     >
       {children}
