@@ -6,15 +6,27 @@ import { QuranicReflection } from '../components/QuranicReflection';
 import { StageBeat } from '../flow/StageBeat';
 import { useOnboarding } from '../context/OnboardingContext';
 
-const PRAYER_OPTIONS = [
-  { value: '0', label: 'Not yet' },
-  { value: '1–2', label: 'prayers' },
-  { value: '3–4', label: 'prayers' },
-  { value: '5', label: 'prayers' },
+interface PrayerTargetOption {
+  target: number;
+  label: string;
+  sublabel: string;
+  countKey: string;
+}
+
+const PRAYER_TARGET_OPTIONS: PrayerTargetOption[] = [
+  { target: 5, label: 'All 5 prayers', sublabel: 'Fajr, Dhuhr, Asr, Maghrib, Isha', countKey: '5' },
+  { target: 4, label: '4 prayers', sublabel: 'Building daily consistency', countKey: '4' },
+  { target: 3, label: '3 prayers', sublabel: 'A solid daily foundation', countKey: '3' },
+  { target: 2, label: '1–2 prayers', sublabel: 'A gentle and steady start', countKey: '1-2' },
 ];
 
 export const PrayersStep: React.FC = () => {
-  const { dailyPrayersCount, setDailyPrayersCount } = useOnboarding();
+  const { targetPrayers, setTargetPrayers, setDailyPrayersCount } = useOnboarding();
+
+  const handleSelect = (option: PrayerTargetOption) => {
+    setTargetPrayers(option.target);
+    setDailyPrayersCount(option.countKey);
+  };
 
   return (
     <View style={styles.mainContent}>
@@ -25,42 +37,44 @@ export const PrayersStep: React.FC = () => {
       />
 
       <View style={styles.questionSection}>
-        <Text style={styles.title}>How often do you pray each day?</Text>
+        <Text style={styles.title}>Set your daily prayer intention</Text>
         <Text style={styles.subtitle}>
-          Choose what reflects your days right now.
+          Commit to a daily foundation. Aim for all five, or begin at your pace.
         </Text>
       </View>
 
       <StageBeat style={styles.optionsList}>
-        {PRAYER_OPTIONS.map((option) => {
-          const isSelected =
-            dailyPrayersCount === option.value ||
-            (option.value === '1–2' && dailyPrayersCount === '1-2') ||
-            (option.value === '3–4' && dailyPrayersCount === '3-4');
+        {PRAYER_TARGET_OPTIONS.map((option) => {
+          const isSelected = targetPrayers === option.target;
 
           return (
             <TouchableOpacity
-              key={option.value}
+              key={option.target}
               style={[
                 styles.optionCard,
                 isSelected ? styles.optionCardActive : styles.optionCardInactive,
               ]}
-              onPress={() => setDailyPrayersCount(option.value)}
+              onPress={() => handleSelect(option)}
               activeOpacity={0.8}
-              testID={`prayer-option-${option.value}`}
+              testID={`prayer-option-${option.countKey}`}
             >
-              <Text style={styles.optionNumber} numberOfLines={1}>
-                {option.value}
-              </Text>
-              <Text
-                style={[
-                  styles.optionLabel,
-                  isSelected && styles.optionLabelActive,
-                ]}
-                numberOfLines={1}
-              >
-                {option.label}
-              </Text>
+              <View style={styles.targetBadge}>
+                <Text style={styles.targetNumber}>{option.target}</Text>
+              </View>
+              <View style={styles.textGroup}>
+                <Text
+                  style={[
+                    styles.optionLabel,
+                    isSelected && styles.optionLabelActive,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {option.label}
+                </Text>
+                <Text style={styles.optionSublabel} numberOfLines={1}>
+                  {option.sublabel}
+                </Text>
+              </View>
               <View
                 style={[
                   styles.indicatorCircle,
@@ -109,12 +123,12 @@ const styles = StyleSheet.create({
   },
   optionsList: {
     width: '100%',
-    gap: 7,
+    gap: 8,
   },
   optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 44,
+    height: 52,
     paddingHorizontal: 14,
     borderRadius: 12,
     borderWidth: 1,
@@ -127,21 +141,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5EFE3',
     borderColor: '#C8A86B',
   },
-  optionNumber: {
+  targetBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#EAE5D8',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  targetNumber: {
     fontFamily: FontFamilies.serifSemiBold,
-    fontSize: 16,
+    fontSize: 15,
     color: '#083B32',
-    width: 38,
+  },
+  textGroup: {
+    flex: 1,
   },
   optionLabel: {
-    flex: 1,
     fontFamily: FontFamilies.sansMedium,
-    fontSize: 13,
+    fontSize: 13.5,
     color: '#083B32',
   },
   optionLabelActive: {
     fontFamily: FontFamilies.sansSemiBold,
     fontWeight: '600',
+  },
+  optionSublabel: {
+    fontFamily: FontFamilies.sansRegular,
+    fontSize: 11,
+    color: '#78716C',
   },
   indicatorCircle: {
     width: 18,
@@ -157,7 +186,7 @@ const styles = StyleSheet.create({
   },
   indicatorCircleActive: {
     borderWidth: 1,
-    backgroundColor: '#083B32',
     borderColor: '#083B32',
+    backgroundColor: '#083B32',
   },
 });

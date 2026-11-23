@@ -68,9 +68,9 @@ export const DaroodStep: React.FC = () => {
       />
 
       <View style={styles.questionSection}>
-        <Text style={styles.title}>How many times do you send Darood?</Text>
+        <Text style={styles.title}>Set your daily Darood intention</Text>
         <Text style={styles.subtitle}>
-          Set your daily count or begin fresh with a gentle start.
+          Choose your daily recitation target or begin fresh.
         </Text>
       </View>
 

@@ -6,17 +6,16 @@ import { RecitationStep } from './RecitationStep';
 import { MissedPrayersStep } from './MissedPrayersStep';
 import { UsernameStep } from './UsernameStep';
 import { USERNAME_STEP } from './userNameForm';
-import { DailyIntentionsStep } from './DailyIntentionsStep';
 import { PrayerSettingsStep } from './PrayerSettingsStep';
 import { ArrivalStep } from './ArrivalStep';
 
 /** The Splash sits before the Flow and owns no progress segment. */
 export const SPLASH = 0;
 
-/** The Arrival sits after the last Step and reads as complete, not as "9 of 8". */
-export const ARRIVAL = 9;
+/** The Arrival sits after the last Step and reads as complete, not as "8 of 7". */
+export const ARRIVAL = 8;
 
-export const TOTAL_STEPS = 8;
+export const TOTAL_STEPS = 7;
 
 /**
  * Ordered Flow. Index is the Step's position — the thing Forward and Back move
@@ -29,9 +28,8 @@ export const STAGES: Record<number, StageComponent> = {
   4: RecitationStep,
   5: MissedPrayersStep,
   [USERNAME_STEP]: UsernameStep,
-  7: DailyIntentionsStep,
-  8: PrayerSettingsStep,
-  9: ArrivalStep,
+  7: PrayerSettingsStep,
+  8: ArrivalStep,
 };
 
 export const META: Record<number, StepMeta> = {
@@ -66,16 +64,11 @@ export const META: Record<number, StepMeta> = {
     cta: { label: 'Continue', testID: 'username-continue-btn' },
   },
   7: {
-    title: 'Your Daily Intentions',
-    countLabel: `7 of ${TOTAL_STEPS}`,
-    cta: { label: 'Continue', testID: 'save-goals-btn' },
-  },
-  8: {
     title: 'Your Tradition & Horizon',
-    countLabel: `8 of ${TOTAL_STEPS}`,
+    countLabel: `7 of ${TOTAL_STEPS}`,
     cta: { label: 'Save my preferences', testID: 'prayer-settings-continue-btn' },
   },
-  9: {
+  8: {
     title: 'Your Journey Begins',
     countLabel: 'Complete',
     backLabel: 'Done',

@@ -12,7 +12,6 @@ import { QuranicReflection } from '../components/QuranicReflection';
 import { StageBeat } from '../flow/StageBeat';
 import { DURATION, EASE } from '../flow/motion';
 import { useOnboarding } from '../context/OnboardingContext';
-import { DHIKR_LABELS } from './dhikrData';
 
 export const ArrivalStep: React.FC = () => {
   const {
@@ -20,6 +19,7 @@ export const ArrivalStep: React.FC = () => {
     targetPrayers,
     targetDarood,
     adhkarRoutines,
+    targetDhikr,
     targetRecitation,
     recitationUnit,
     targetQadha,
@@ -27,26 +27,29 @@ export const ArrivalStep: React.FC = () => {
 
   const prayersDisplay = `${targetPrayers || 5} prayers`;
   const daroodDisplay =
-    targetDarood > 0 ? `${targetDarood} salawat` : 'Starting fresh';
+    targetDarood > 0 ? `${targetDarood} salawat / day` : 'Starting fresh';
 
   const activeDhikr = adhkarRoutines.filter((r) => r !== 'No current routine');
+  const dhikrCountSuffix = targetDhikr > 0 ? ` (${targetDhikr}/day)` : '';
   const dhikrDisplay =
     activeDhikr.length === 0
       ? 'Starting fresh'
       : activeDhikr.length === 4
-      ? 'All daily azkar'
-      : activeDhikr
+      ? `All daily azkar${dhikrCountSuffix}`
+      : `${activeDhikr
           .map((r) => {
             if (r === 'Morning azkar') return 'Morning';
             if (r === 'Evening azkar') return 'Evening';
             if (r === 'After prayer') return 'After prayers';
+            if (r === 'Daily Istighfar') return 'Istighfar';
             return r;
           })
-          .join(', ');
+          .join(', ')}${dhikrCountSuffix}`;
 
-  const recitationDisplay = `${targetRecitation || 10} ${
-    recitationUnit ? recitationUnit.toLowerCase() : 'ayahs'
-  }`;
+  const recitationDisplay =
+    targetRecitation > 0
+      ? `${targetRecitation} ${recitationUnit ? recitationUnit.toLowerCase() : 'ayahs'}`
+      : 'Starting fresh';
   const qadhaDisplay = `${targetQadha} makeup / day`;
 
   const headingText = userName.trim()
