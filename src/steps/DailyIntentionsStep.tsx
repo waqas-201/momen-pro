@@ -15,13 +15,7 @@ import { FontFamilies } from '../theme/typography';
 import { QuranicReflection } from '../components/QuranicReflection';
 import { StageBeat } from '../flow/StageBeat';
 import { useOnboarding } from '../context/OnboardingContext';
-
-const DHIKR_ROUTINE_OPTIONS = [
-  { value: 'Morning azkar', label: 'Morning' },
-  { value: 'Evening azkar', label: 'Evening' },
-  { value: 'After prayer', label: 'After prayers' },
-  { value: 'Before sleep', label: 'Before sleep' },
-];
+import { DHIKR_LABELS } from './dhikrData';
 
 export const DailyIntentionsStep: React.FC = () => {
   const {
@@ -149,36 +143,36 @@ export const DailyIntentionsStep: React.FC = () => {
           </View>
 
           <View style={styles.routinesRow}>
-            {DHIKR_ROUTINE_OPTIONS.map((item) => {
-              const isSelected = adhkarRoutines.includes(item.value);
-              const slug = item.label.toLowerCase().replace(/\s+/g, '-');
-
-              return (
-                <TouchableOpacity
-                  key={item.value}
-                  style={[
-                    styles.routinePill,
-                    isSelected ? styles.routinePillActive : styles.routinePillInactive,
-                  ]}
-                  onPress={() => toggleAdhkarRoutine(item.value)}
-                  activeOpacity={0.7}
-                  testID={`intention-dhikr-${slug}`}
-                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                >
-                  {isSelected && (
-                    <Check size={9} color="#083B32" strokeWidth={2.8} />
-                  )}
-                  <Text
-                    style={[
-                      styles.routinePillText,
-                      isSelected && styles.routinePillTextActive,
-                    ]}
+            {activeRoutines.length === 0 ? (
+              <Text style={styles.noRoutineNote}>
+                No routines selected. You can add them anytime.
+              </Text>
+            ) : (
+              activeRoutines.map((routineId) => {
+                const label = DHIKR_LABELS[routineId] ?? routineId;
+                const slug = label.toLowerCase().replace(/\s+/g, '-');
+                return (
+                  <TouchableOpacity
+                    key={routineId}
+                    style={[styles.routinePill, styles.routinePillActive]}
+                    onPress={() => toggleAdhkarRoutine(routineId)}
+                    activeOpacity={0.7}
+                    testID={`intention-dhikr-${slug}`}
+                    hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                   >
-                    {item.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+                    <Check size={9} color="#083B32" strokeWidth={2.8} />
+                    <Text
+                      style={[
+                        styles.routinePillText,
+                        styles.routinePillTextActive,
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })
+            )}
           </View>
         </View>
 
@@ -415,6 +409,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
+  },
+  noRoutineNote: {
+    fontFamily: FontFamilies.sansRegular,
+    fontSize: 11,
+    color: '#78716C',
+    fontStyle: 'italic',
   },
   footnote: {
     fontFamily: FontFamilies.sansRegular,

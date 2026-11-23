@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /** The Step that asks for a name — the only Step that can refuse Forward. */
-export const USERNAME_STEP = 7;
+export const USERNAME_STEP = 6;
 
 /** Mirrors the input's maxLength so the two can never disagree. */
 export const NAME_MAX_LENGTH = 32;

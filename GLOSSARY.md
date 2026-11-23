@@ -1,6 +1,6 @@
 # Momen Pro — Domain Language
 
-The first-run experience: a person arrives at the Splash, is walked through a short sequence of questions about their worship, and lands on an arrival screen confirming the intentions they set. A person may move backward at any point. From there Home is where those intentions are lived, one Day at a time.
+The first-run experience: a person arrives at the Splash, sets their daily intentions for worship and practice, and lands on an arrival screen confirming the targets they chose. A person may move backward at any point. From there Home is where those intentions are lived, one Day at a time.
 
 ## Language
 
@@ -9,7 +9,7 @@ The ordered, reversible sequence of Steps a person moves through after leaving t
 _Avoid_: Wizard, funnel, onboarding carousel
 
 **Step**:
-One numbered question inside the Flow, owning one segment of the progress bar.
+One numbered stage inside the Flow where a person sets an Intention Target or preference, owning one segment of the progress bar.
 _Avoid_: Screen, page, slide
 
 **Chrome**:

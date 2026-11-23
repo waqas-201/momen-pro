@@ -12,6 +12,7 @@ import { QuranicReflection } from '../components/QuranicReflection';
 import { StageBeat } from '../flow/StageBeat';
 import { DURATION, EASE } from '../flow/motion';
 import { useOnboarding } from '../context/OnboardingContext';
+import { DHIKR_LABELS } from './dhikrData';
 
 export const ArrivalStep: React.FC = () => {
   const {
