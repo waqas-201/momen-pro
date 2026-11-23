@@ -1,13 +1,18 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Minus, Plus, Check } from 'lucide-react-native';
+import { Minus, Plus, Check, BookOpen } from 'lucide-react-native';
 import { FontFamilies } from '../theme/typography';
 import { QuranicReflection } from '../components/QuranicReflection';
 import { StageBeat } from '../flow/StageBeat';
 import { useOnboarding } from '../context/OnboardingContext';
 
-const FREQUENCY_OPTIONS = ['Yes', 'Sometimes', 'Not yet'];
-const UNIT_OPTIONS = ['Ayahs', 'Ruku', 'Para (Juz)'];
+const UNIT_OPTIONS = ['Ayahs', 'Pages', 'Ruku', 'Para (Juz)'];
+const QUICK_RECITATION_PILLS: Record<string, number[]> = {
+  Ayahs: [5, 10, 20, 50],
+  Pages: [1, 2, 4, 10],
+  Ruku: [1, 2, 3, 5],
+  'Para (Juz)': [0.25, 0.5, 1],
+};
 
 export const RecitationStep: React.FC = () => {
   const {
@@ -17,8 +22,11 @@ export const RecitationStep: React.FC = () => {
     setRecitationAmount,
     recitationUnit,
     setRecitationUnit,
+    targetRecitation,
     setTargetRecitation,
   } = useOnboarding();
+
+  const isStartingFresh = recitesEveryDay === 'Not yet' || targetRecitation === 0;
 
   const handleDecrease = () => {
     setRecitationAmount((prev) => {
@@ -36,7 +44,34 @@ export const RecitationStep: React.FC = () => {
     });
   };
 
-  const showFollowUp = recitesEveryDay !== 'Not yet';
+  const handleSelectUnit = (unit: string) => {
+    setRecitationUnit(unit);
+    if (isStartingFresh) {
+      setRecitesEveryDay('Yes');
+      const defaultAmount = unit === 'Pages' || unit === 'Ruku' ? 2 : unit === 'Para (Juz)' ? 1 : 10;
+      setRecitationAmount(defaultAmount);
+      setTargetRecitation(defaultAmount);
+    }
+  };
+
+  const handleQuickPill = (val: number) => {
+    setRecitationAmount(val);
+    setTargetRecitation(val);
+    setRecitesEveryDay('Yes');
+  };
+
+  const handleToggleFresh = () => {
+    if (isStartingFresh) {
+      setRecitesEveryDay('Yes');
+      setRecitationAmount(10);
+      setTargetRecitation(10);
+    } else {
+      setRecitesEveryDay('Not yet');
+      setTargetRecitation(0);
+    }
+  };
+
+  const currentPills = QUICK_RECITATION_PILLS[recitationUnit] ?? QUICK_RECITATION_PILLS.Ayahs;
 
   return (
     <View style={styles.mainContent}>
@@ -47,54 +82,17 @@ export const RecitationStep: React.FC = () => {
       />
 
       <View style={styles.questionSection}>
-        <Text style={styles.title}>Do you recite Qur’an daily?</Text>
+        <Text style={styles.title}>Set your daily Qur’an intention</Text>
         <Text style={styles.subtitle}>
-          Even a single ayah holds boundless light.
+          Choose your daily recitation target. Even a single ayah brings light.
         </Text>
       </View>
 
       <StageBeat style={styles.controls}>
-        <View style={styles.frequencyRow}>
-          {FREQUENCY_OPTIONS.map((option) => {
-            const isSelected = recitesEveryDay === option;
-            const slug = option.toLowerCase().replace(/\s+/g, '-');
-
-            return (
-              <TouchableOpacity
-                key={option}
-                style={[
-                  styles.freqPill,
-                  isSelected ? styles.freqPillActive : styles.freqPillInactive,
-                ]}
-                onPress={() => setRecitesEveryDay(option)}
-                activeOpacity={0.8}
-                testID={`freq-pill-${slug}`}
-                hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-              >
-                {isSelected && (
-                  <Check size={11} color="#083B32" strokeWidth={2.6} />
-                )}
-                <Text
-                  style={[
-                    styles.freqPillText,
-                    isSelected && styles.freqPillTextActive,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {option}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {showFollowUp && (
-          <View style={styles.followUpSection}>
-            <Text style={styles.followUpLabel}>
-              How much do you typically aim for?
-            </Text>
-
-            <View style={styles.stepperContainer}>
+        {/* Main Target Stepper Card */}
+        {!isStartingFresh && (
+          <View style={styles.stepperContainer}>
+            <View style={styles.stepperRow}>
               <TouchableOpacity
                 style={styles.stepperButton}
                 onPress={handleDecrease}
@@ -102,13 +100,13 @@ export const RecitationStep: React.FC = () => {
                 testID="recitation-decrease-btn"
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Minus size={13} color="#083B32" strokeWidth={2.4} />
+                <Minus size={14} color="#083B32" strokeWidth={2.4} />
               </TouchableOpacity>
 
               <View style={styles.stepperValueContainer}>
                 <Text style={styles.stepperValue}>{recitationAmount}</Text>
                 <Text style={styles.stepperUnitLabel}>
-                  {recitationUnit ? recitationUnit.toLowerCase() : 'ayahs'}
+                  {recitationUnit ? recitationUnit.toLowerCase() : 'ayahs'} / day
                 </Text>
               </View>
 
@@ -119,40 +117,32 @@ export const RecitationStep: React.FC = () => {
                 testID="recitation-increase-btn"
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Plus size={13} color="#083B32" strokeWidth={2.4} />
+                <Plus size={14} color="#083B32" strokeWidth={2.4} />
               </TouchableOpacity>
             </View>
 
-            <View style={styles.unitPillsRow}>
-              {UNIT_OPTIONS.map((unit) => {
-                const isSelected = recitationUnit === unit;
-                const slug = unit.toLowerCase().replace(/[^a-z0-9]/g, '-');
-
+            {/* Quick amount pills for the active unit */}
+            <View style={styles.quickPillsRow}>
+              {currentPills.map((val) => {
+                const isActive = recitationAmount === val;
                 return (
                   <TouchableOpacity
-                    key={unit}
+                    key={val}
                     style={[
-                      styles.unitPill,
-                      isSelected
-                        ? styles.unitPillActive
-                        : styles.unitPillInactive,
+                      styles.quickPill,
+                      isActive ? styles.quickPillActive : styles.quickPillInactive,
                     ]}
-                    onPress={() => setRecitationUnit(unit)}
-                    activeOpacity={0.8}
-                    testID={`unit-pill-${slug}`}
-                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    onPress={() => handleQuickPill(val)}
+                    activeOpacity={0.7}
+                    testID={`recitation-pill-${val}`}
                   >
-                    {isSelected && (
-                      <Check size={10} color="#083B32" strokeWidth={2.4} />
-                    )}
                     <Text
                       style={[
-                        styles.unitPillText,
-                        isSelected && styles.unitPillTextActive,
+                        styles.quickPillText,
+                        isActive && styles.quickPillTextActive,
                       ]}
-                      numberOfLines={1}
                     >
-                      {unit}
+                      {val}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -160,6 +150,80 @@ export const RecitationStep: React.FC = () => {
             </View>
           </View>
         )}
+
+        {/* Unit Selector Pills */}
+        <View style={styles.unitPillsRow}>
+          {UNIT_OPTIONS.map((unit) => {
+            const isSelected = recitationUnit === unit;
+            const slug = unit.toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+            return (
+              <TouchableOpacity
+                key={unit}
+                style={[
+                  styles.unitPill,
+                  isSelected ? styles.unitPillActive : styles.unitPillInactive,
+                ]}
+                onPress={() => handleSelectUnit(unit)}
+                activeOpacity={0.8}
+                testID={`unit-pill-${slug}`}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              >
+                {isSelected && (
+                  <Check size={10} color="#083B32" strokeWidth={2.4} />
+                )}
+                <Text
+                  style={[
+                    styles.unitPillText,
+                    isSelected && styles.unitPillTextActive,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {unit}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Start fresh option */}
+        <TouchableOpacity
+          style={[
+            styles.freshCard,
+            isStartingFresh ? styles.freshCardActive : styles.freshCardInactive,
+          ]}
+          onPress={handleToggleFresh}
+          activeOpacity={0.8}
+          testID="recitation-not-yet-btn"
+        >
+          <View style={styles.freshLeft}>
+            <BookOpen
+              size={15}
+              color={isStartingFresh ? '#083B32' : '#78716C'}
+              strokeWidth={2}
+            />
+            <Text
+              style={[
+                styles.freshLabel,
+                isStartingFresh && styles.freshLabelActive,
+              ]}
+            >
+              I am starting fresh with Qur’an
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.indicatorCircle,
+              isStartingFresh
+                ? styles.indicatorCircleActive
+                : styles.indicatorCircleInactive,
+            ]}
+          >
+            {isStartingFresh && (
+              <Check size={10} color="#FFFFFF" strokeWidth={3} />
+            )}
+          </View>
+        </TouchableOpacity>
       </StageBeat>
     </View>
   );
@@ -195,86 +259,72 @@ const styles = StyleSheet.create({
   },
   controls: {
     width: '100%',
-    gap: 9,
-  },
-  frequencyRow: {
-    flexDirection: 'row',
-    gap: 8,
-    width: '100%',
-  },
-  freqPill: {
-    flex: 1,
-    height: 42,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 6,
-    paddingHorizontal: 8,
-  },
-  freqPillInactive: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E7E4DA',
-  },
-  freqPillActive: {
-    backgroundColor: '#F5EFE3',
-    borderColor: '#C8A86B',
-  },
-  freqPillText: {
-    fontFamily: FontFamilies.sansMedium,
-    fontSize: 12.5,
-    color: '#083B32',
-  },
-  freqPillTextActive: {
-    fontFamily: FontFamilies.sansSemiBold,
-    fontWeight: '600',
-  },
-  followUpSection: {
-    width: '100%',
-    gap: 7,
-    alignItems: 'center',
-  },
-  followUpLabel: {
-    fontFamily: FontFamilies.sansMedium,
-    fontSize: 11.5,
-    color: '#57534E',
-    textAlign: 'center',
+    gap: 10,
   },
   stepperContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E7E4DA',
+    padding: 12,
+    gap: 10,
+  },
+  stepperRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    width: '100%',
-    height: 44,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E7E4DA',
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
   },
   stepperButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: '#F4EDDF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepperValueContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
+    alignItems: 'center',
+    gap: 2,
   },
   stepperValue: {
     fontFamily: FontFamilies.serifSemiBold,
-    fontSize: 20,
+    fontSize: 32,
+    lineHeight: 36,
     color: '#083B32',
   },
   stepperUnitLabel: {
-    fontFamily: FontFamilies.sansRegular,
+    fontFamily: FontFamilies.sansMedium,
     fontSize: 12,
     color: '#78716C',
+  },
+  quickPillsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  quickPill: {
+    paddingVertical: 5,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  quickPillInactive: {
+    backgroundColor: '#FDFCF9',
+    borderColor: '#E7E4DA',
+  },
+  quickPillActive: {
+    backgroundColor: '#083B32',
+    borderColor: '#083B32',
+  },
+  quickPillText: {
+    fontFamily: FontFamilies.sansMedium,
+    fontSize: 11,
+    color: '#57534E',
+  },
+  quickPillTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   unitPillsRow: {
     flexDirection: 'row',
@@ -283,17 +333,17 @@ const styles = StyleSheet.create({
   },
   unitPill: {
     flex: 1,
-    height: 34,
+    height: 38,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
-    gap: 5,
+    gap: 4,
     paddingHorizontal: 4,
   },
   unitPillInactive: {
-    backgroundColor: '#FAF9F6',
+    backgroundColor: '#FFFFFF',
     borderColor: '#E7E4DA',
   },
   unitPillActive: {
@@ -301,13 +351,62 @@ const styles = StyleSheet.create({
     borderColor: '#C8A86B',
   },
   unitPillText: {
-    fontFamily: FontFamilies.sansRegular,
-    fontSize: 11,
-    color: '#78716C',
+    fontFamily: FontFamilies.sansMedium,
+    fontSize: 11.5,
+    color: '#57534E',
   },
   unitPillTextActive: {
-    fontFamily: FontFamilies.sansMedium,
-    fontWeight: '600',
     color: '#083B32',
+    fontFamily: FontFamilies.sansSemiBold,
+    fontWeight: '600',
+  },
+  freshCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  freshCardInactive: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E7E4DA',
+  },
+  freshCardActive: {
+    backgroundColor: '#F5EFE3',
+    borderColor: '#C8A86B',
+  },
+  freshLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  freshLabel: {
+    fontFamily: FontFamilies.sansRegular,
+    fontSize: 12.5,
+    color: '#57534E',
+  },
+  freshLabelActive: {
+    fontFamily: FontFamilies.sansSemiBold,
+    color: '#083B32',
+    fontWeight: '600',
+  },
+  indicatorCircle: {
+    width: 17,
+    height: 17,
+    borderRadius: 9999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  indicatorCircleInactive: {
+    borderWidth: 1,
+    borderColor: '#DFDCD2',
+    backgroundColor: 'transparent',
+  },
+  indicatorCircleActive: {
+    borderWidth: 1,
+    borderColor: '#083B32',
+    backgroundColor: '#083B32',
   },
 });

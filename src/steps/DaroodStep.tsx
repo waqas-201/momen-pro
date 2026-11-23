@@ -12,7 +12,7 @@ import { QuranicReflection } from '../components/QuranicReflection';
 import { StageBeat } from '../flow/StageBeat';
 import { useOnboarding } from '../context/OnboardingContext';
 
-const QUICK_PILLS = ['10', '20', '33', '50', '70', '100+'];
+const QUICK_PILLS = ['10', '20', '50', '100', '200', '500+'];
 
 export const DaroodStep: React.FC = () => {
   const { targetDarood, setTargetDarood, setDaroodFrequency } = useOnboarding();
@@ -21,8 +21,8 @@ export const DaroodStep: React.FC = () => {
 
   const handleToggleNotYet = () => {
     if (isNotYet) {
-      setTargetDarood(33);
-      setDaroodFrequency('33 / day');
+      setTargetDarood(10);
+      setDaroodFrequency('10 / day');
     } else {
       setTargetDarood(0);
       setDaroodFrequency('Not yet');
@@ -37,7 +37,7 @@ export const DaroodStep: React.FC = () => {
 
   const handleDecrement = () => {
     setTargetDarood((prev) => {
-      const step = prev > 50 ? 10 : 5;
+      const step = 10;
       const next = Math.max(0, prev - step);
       setDaroodFrequency(next > 0 ? `${next} / day` : 'Not yet');
       return next;
@@ -46,7 +46,7 @@ export const DaroodStep: React.FC = () => {
 
   const handleIncrement = () => {
     setTargetDarood((prev) => {
-      const step = prev >= 50 ? 10 : 5;
+      const step = 10;
       const next = prev === 0 ? 10 : prev + step;
       setDaroodFrequency(`${next} / day`);
       return next;
@@ -68,9 +68,9 @@ export const DaroodStep: React.FC = () => {
       />
 
       <View style={styles.questionSection}>
-        <Text style={styles.title}>How many times do you send Darood?</Text>
+        <Text style={styles.title}>Set your daily Darood intention</Text>
         <Text style={styles.subtitle}>
-          Set your daily count or begin fresh with a gentle start.
+          Choose your daily recitation target or begin fresh.
         </Text>
       </View>
 
@@ -91,7 +91,7 @@ export const DaroodStep: React.FC = () => {
               style={styles.textInput}
               value={isNotYet ? '' : targetDarood > 0 ? String(targetDarood) : ''}
               onChangeText={handleTextChange}
-              placeholder={isNotYet ? 'Not yet' : '33'}
+              placeholder={isNotYet ? 'Not yet' : '10'}
               placeholderTextColor="#A8A29E"
               keyboardType="number-pad"
               maxLength={5}
@@ -116,7 +116,7 @@ export const DaroodStep: React.FC = () => {
             const pillNum = parseInt(pill.replace(/[^0-9]/g, ''), 10) || 0;
             const isSelected =
               !isNotYet &&
-              (pill === '100+' ? targetDarood >= 100 : targetDarood === pillNum);
+              (pill.endsWith('+') ? targetDarood >= pillNum : targetDarood === pillNum);
 
             return (
               <TouchableOpacity

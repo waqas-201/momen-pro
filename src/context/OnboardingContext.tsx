@@ -3,7 +3,6 @@ import React, { createContext, useContext, useState } from 'react';
 export interface OnboardingState {
   userName: string;
   dailyPrayersCount: string;
-  prayerSpace: string;
   daroodFrequency: string;
   adhkarRoutines: string[];
   recitesEveryDay: string;
@@ -22,8 +21,8 @@ export interface OnboardingState {
   
   setUserName: (val: string) => void;
   setDailyPrayersCount: (val: string) => void;
-  setPrayerSpace: (val: string) => void;
   setDaroodFrequency: (val: string) => void;
+  setAdhkarRoutines: React.Dispatch<React.SetStateAction<string[]>>;
   toggleAdhkarRoutine: (val: string) => void;
   setRecitesEveryDay: (val: string) => void;
   setRecitationAmount: (val: number | ((prev: number) => number)) => void;
@@ -45,7 +44,6 @@ const OnboardingContext = createContext<OnboardingState | null>(null);
 export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userName, setUserName] = useState<string>('');
   const [dailyPrayersCount, setDailyPrayersCount] = useState<string>('5');
-  const [prayerSpace, setPrayerSpace] = useState<string>('Mosque');
   const [daroodFrequency, setDaroodFrequency] = useState<string>('Every day');
   const [adhkarRoutines, setAdhkarRoutines] = useState<string[]>(['Morning azkar', 'Evening azkar']);
   const [recitesEveryDay, setRecitesEveryDay] = useState<string>('Yes');
@@ -54,7 +52,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [missedPrayers, setMissedPrayers] = useState<number>(0);
   const [missedNotSure, setMissedNotSure] = useState<boolean>(false);
   const [targetPrayers, setTargetPrayers] = useState<number>(5);
-  const [targetDarood, setTargetDarood] = useState<number>(33);
+  const [targetDarood, setTargetDarood] = useState<number>(10);
   const [targetDhikr, setTargetDhikr] = useState<number>(100);
   const [targetRecitation, setTargetRecitation] = useState<number>(10);
   const [targetQadha, setTargetQadha] = useState<number>(0);
@@ -85,11 +83,10 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setUserName,
         dailyPrayersCount,
         setDailyPrayersCount,
-        prayerSpace,
-        setPrayerSpace,
         daroodFrequency,
         setDaroodFrequency,
         adhkarRoutines,
+        setAdhkarRoutines,
         toggleAdhkarRoutine,
         recitesEveryDay,
         setRecitesEveryDay,

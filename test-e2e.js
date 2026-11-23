@@ -256,16 +256,14 @@ async function run() {
   check('splash: no flow step mounted', (await stepAtRest(page)) === 'none');
 
   const STEPS = [
-    { id: 1, cta: 'prayers-continue-btn', title: 'PRAYERS' },
-    { id: 2, cta: 'prayer-space-continue-btn', title: 'PRAYER SPACE' },
-    { id: 3, cta: 'darood-continue-btn', title: 'DAROOD O SALAM' },
-    { id: 4, cta: 'remembrance-continue-btn', title: 'REMEMBRANCE' },
-    { id: 5, cta: 'recitation-continue-btn', title: 'RECITATION' },
-    { id: 6, cta: 'missed-prayers-continue-btn', title: 'A FRESH BEGINNING' },
-    { id: 7, cta: 'username-continue-btn', title: 'YOUR NAME' },
-    { id: 8, cta: 'save-goals-btn', title: 'YOUR DAILY INTENTIONS' },
-    { id: 9, cta: 'prayer-settings-continue-btn', title: 'YOUR TRADITION & HORIZON' },
-    { id: 10, cta: 'journey-finish-button', title: 'YOUR JOURNEY BEGINS' },
+    { id: 1, cta: 'prayers-continue-btn', title: 'YOUR PRAYERS' },
+    { id: 2, cta: 'darood-continue-btn', title: 'YOUR DAROOD O SALAM' },
+    { id: 3, cta: 'remembrance-continue-btn', title: 'YOUR REMEMBRANCE' },
+    { id: 4, cta: 'recitation-continue-btn', title: 'YOUR RECITATION' },
+    { id: 5, cta: 'missed-prayers-continue-btn', title: 'A FRESH BEGINNING' },
+    { id: 6, cta: 'username-continue-btn', title: 'YOUR NAME' },
+    { id: 7, cta: 'prayer-settings-continue-btn', title: 'YOUR TRADITION & HORIZON' },
+    { id: 8, cta: 'journey-finish-button', title: 'YOUR JOURNEY BEGINS' },
   ];
 
   console.log('\nSplash -> step 1 (entry)');
@@ -277,7 +275,7 @@ async function run() {
     expects: 'exit',
     click: () => page.getByTestId('splash-begin-button').click(),
   });
-  check('1: title shown', await forText(page, 'PRAYERS'));
+  check('1: title shown', await forText(page, 'YOUR PRAYERS'));
   await page.screenshot({ path: path.join(shots, '1-prayers.png') });
 
   for (let i = 0; i < STEPS.length - 1; i += 1) {
@@ -297,25 +295,25 @@ async function run() {
     });
   }
 
-  console.log('\nBack: step 10 -> 9 (reverse)');
+  console.log('\nBack: step 8 -> 7 (reverse)');
   await moveAndGrade(page, {
-    label: '10->9 back',
-    from: 10,
-    to: 9,
+    label: '8->7 back',
+    from: 8,
+    to: 7,
     forward: false,
     click: () => page.getByTestId('header-back-button').click(),
   });
 
-  console.log('\nBack: step 9 -> 8 (reverse)');
+  console.log('\nBack: step 7 -> 6 (reverse)');
   await moveAndGrade(page, {
-    label: '9->8 back',
-    from: 9,
-    to: 8,
+    label: '7->6 back',
+    from: 7,
+    to: 6,
     forward: false,
     click: () => page.getByTestId('header-back-button').click(),
   });
 
-  console.log('\nDrag back: step 8 -> 7 (finger-tracked)');
+  console.log('\nDrag back: step 6 -> 5 (finger-tracked)');
   const stageBox = await page.getByTestId('flow-stage').boundingBox();
   const dragY = stageBox.y + stageBox.height / 2;
   const dragX = stageBox.x + 30;
@@ -336,11 +334,11 @@ async function run() {
     0
   );
   check('drag: tracks the finger', dragReveal > 30, `revealed ${dragReveal.toFixed(0)}px`);
-  check('drag: commits to step 7', afterDrag === 7, `resting on ${afterDrag}`);
+  check('drag: commits to step 5', afterDrag === 5, `resting on ${afterDrag}`);
 
   console.log('\nRapid taps must not double-advance');
-  const backToEight = await page.getByTestId('username-continue-btn').isVisible().catch(() => false);
-  if (backToEight) {
+  const backToSix = await page.getByTestId('missed-prayers-continue-btn').isVisible().catch(() => false);
+  if (backToSix) {
     const ctaBox = await page.getByTestId('flow-cta').boundingBox();
     const tapX = ctaBox.x + ctaBox.width / 2;
     const tapY = ctaBox.y + ctaBox.height / 2;
@@ -349,9 +347,9 @@ async function run() {
     await page.mouse.click(tapX, tapY);
     await page.waitForTimeout(SETTLE);
     const landed = await stepAtRest(page);
-    check('rapid taps: advance exactly one step', landed === 8, `resting on ${landed}`);
+    check('rapid taps: advance exactly one step', landed === 6, `resting on ${landed}`);
   } else {
-    check('rapid taps: harness reached step 7', false, 'CTA not found');
+    check('rapid taps: harness reached step 5', false, 'CTA not found');
   }
 
   console.log('\nBack from step 1 returns to the Splash');
@@ -377,7 +375,7 @@ async function run() {
   await page.getByTestId('splash-skip-button').click();
   await page.waitForTimeout(SETTLE);
   const skipped = await stepAtRest(page);
-  check('skip: lands on Arrival (9)', skipped === 9, `resting on ${skipped}`);
+  check('skip: lands on Arrival (8)', skipped === 8, `resting on ${skipped}`);
 
   console.log('\nCompletion modal');
   await page.getByTestId('journey-finish-button').click();
