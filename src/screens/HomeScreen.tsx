@@ -36,6 +36,7 @@ const ROUTINE_LABELS: Record<string, string> = {
   'Evening azkar': 'Evening',
   'After prayer': 'After prayers',
   'Before sleep': 'Before sleep',
+  'Daily Istighfar': 'Istighfar',
 };
 
 const IntentionIcon: React.FC<{ intention: IntentionKey }> = ({ intention }) => {

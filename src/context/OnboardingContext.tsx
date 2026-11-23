@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState } from 'react';
-import { DEFAULT_SELECTED_DHIKR } from '../steps/dhikrData';
 
 export interface OnboardingState {
   userName: string;
@@ -46,7 +45,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [userName, setUserName] = useState<string>('');
   const [dailyPrayersCount, setDailyPrayersCount] = useState<string>('5');
   const [daroodFrequency, setDaroodFrequency] = useState<string>('Every day');
-  const [adhkarRoutines, setAdhkarRoutines] = useState<string[]>(DEFAULT_SELECTED_DHIKR);
+  const [adhkarRoutines, setAdhkarRoutines] = useState<string[]>(['Morning azkar', 'Evening azkar']);
   const [recitesEveryDay, setRecitesEveryDay] = useState<string>('Yes');
   const [recitationAmount, setRecitationAmount] = useState<number>(10);
   const [recitationUnit, setRecitationUnit] = useState<string>('Ayahs');
